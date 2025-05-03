@@ -59,7 +59,9 @@ namespace LogicLayer
 
             var questionValue = questionOption?.Value?.ToString() ?? "";
 
-            var result = await _chatGPTManager.RetrieveQuestionAboutConversationFromChatGPTAsync(questionValue, []);
+            var messages = await _messageManager.RetrieveDiscordMessagesByChannelIDAndMinutesAsync(command.Channel.Id, int.Parse(_configuration["MINUTES_FOR_CHAT"] ?? "60"));
+
+            var result = await _chatGPTManager.RetrieveQuestionAboutConversationFromChatGPTAsync(questionValue, messages);
 
             var builder = new ComponentBuilder();
 
@@ -73,8 +75,6 @@ namespace LogicLayer
         {
             try
             {
-                // defer respone
-                await command.DeferAsync(ephemeral: true);
 
                 if (command.Channel is not IGuildChannel guild)
                 {
@@ -82,12 +82,15 @@ namespace LogicLayer
                     return; // Exit early if the channel is not a guild channel
                 }
 
+                await command.FollowupAsync("I can't do that yet...");
+
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred while handling the Summarize command.");
-                await command.RespondAsync("An error occurred while processing your command.", ephemeral: true);
+                await command.FollowupAsync("An error occurred while processing your command.", ephemeral: true);
             }
+
         }
 
         public async Task HandlePingCommand(SocketSlashCommand command)

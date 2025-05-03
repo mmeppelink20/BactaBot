@@ -97,7 +97,7 @@ namespace LogicLayer
             return response ?? "Failed to retrieve conversation summary";
         }
 
-        public async Task<string> RetrieveQuestionAboutConversationFromChatGPTAsync(string question, List<SocketMessage> messages)
+        public async Task<string> RetrieveQuestionAboutConversationFromChatGPTAsync(string question, List<DiscordMessageVM> messages)
         {
             var response = string.Empty;
 
@@ -105,7 +105,23 @@ namespace LogicLayer
             {
                 ChatClient client = new(model: _configuration["SUMMARY_MODEL"], apiKey: _configuration["OPEN_AI_API_KEY"]);
 
-                var prompt = $"{_configuration["QUESTION_PROMPT"]} QUESTION: {question} CONVERSATION: {messages}";
+                var prompt = $"{_configuration["QUESTION_PROMPT"]}\n\n";
+
+                prompt += $"{question}\n\n";
+
+                foreach (var message in messages)
+                {
+                    var role = message.UserName != null && message.UserName.Equals(_configuration["BACTA_BOT_NAME"])
+                        ? "[ASSISTANT]"
+                        : "[USER]";
+                    prompt +=
+                        $" {role} USERNAME: {message.UserName} | " +
+                        $"NICKNAME: {message.NickName} | " +
+                        $"MESSAGE CONTENT: {message.CleanContent} | " +
+                        $"MESSAGE DATETIME: {message.MessageDatetime} | " +
+                        $"MESSAGE ID: {message.MessageId} | " +
+                        $"REPLIED TO MESSAGE ID (nullable): {message.RepliedToMessageId} \n\n";
+                }
 
                 ChatCompletion completionResult = await client.CompleteChatAsync(prompt);
 

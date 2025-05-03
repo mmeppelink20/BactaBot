@@ -28,9 +28,10 @@ namespace LogicLayer
 
             _buttonList = new Dictionary<string, Func<SocketMessageComponent, Task>>
             {
-                { "btnDm", _buttons.BtnDm },
-                { "btnShare", _buttons.BtnShare }
+                { "btnDm", component => _buttons.BtnDm(component, "DefaultMessage") },
+                { "btnShare", component => _buttons.BtnShare(component, "DefaultMessage") }
             };
+
         }
 
         public Task ButtonExecutorAsync(SocketMessageComponent component)

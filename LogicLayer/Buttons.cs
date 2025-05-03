@@ -32,7 +32,7 @@ namespace LogicLayer
                 [ButtonId.btnShare] = false  // Share button initially enabled
             };
         }
-        public async Task BtnDm(SocketMessageComponent component)
+        public async Task BtnDm(SocketMessageComponent component, string message)
         {
             try
             {
@@ -67,7 +67,7 @@ namespace LogicLayer
             builder.WithButton("DM", ButtonId.btnDm.ToString(), ButtonStyle.Primary, disabled: isDisabled);
         }
 
-        public async Task BtnShare(SocketMessageComponent component)
+        public async Task BtnShare(SocketMessageComponent component, string message)
         {
             try
             {
@@ -87,7 +87,7 @@ namespace LogicLayer
                 _buttonIsDisabledStates[ButtonId.btnShare] = true;
 
                 // send a message to the channel where the button was clicked with the content of the message
-                await component.Channel.SendMessageAsync(component.Message.Content);
+                await component.Channel.SendMessageAsync($"{component.Message.Content} {component.User.Mention}");
             }
             catch (Exception ex)
             {

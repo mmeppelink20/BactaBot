@@ -76,6 +76,7 @@ namespace LogicLayer
             _client.MessageReceived += _eventHandler.MessageRecieved;
             _client.SlashCommandExecuted += _eventHandler.SlashCommandExecuted;
             _client.ButtonExecuted += _eventHandler.ButtonExecuted;
+            _eventHandler.ShutdownRequested += StopAsync;
 
             _logger.LogInformation((int)BactaLogging.LogEvent.StartUpShutDown,
         @$"Starting Bacta Bot
@@ -110,6 +111,8 @@ namespace LogicLayer
             {
                 await _client.LogoutAsync();
                 await _client.StopAsync();
+                // close program
+                // Environment.Exit(0);
             }
         }
 

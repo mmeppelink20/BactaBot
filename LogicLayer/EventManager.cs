@@ -21,6 +21,8 @@ namespace LogicLayer
         private readonly IBactaConfigurationManager _bactaConfigurationManager = bactaConfigurationManager;
         private readonly IChatGPTManager _chatGPTManager = chatGPTManager;
 
+        public Func<Task>? ShutdownRequested { get; set; }
+
         public async Task MessageRecieved(SocketMessage message)
         {
             try
@@ -41,12 +43,49 @@ namespace LogicLayer
             await Task.CompletedTask;
         }
 
-        private void PrefixCommands(SocketMessage message)
+        private async void PrefixCommands(SocketMessage message)
         {
-            if (message.Content == "!refreshConfig")
+            // Ensure the configuration value is not null or empty before splitting  
+            var developerUserIdList = _configuration["DEVELOPER_USERID_LIST"];
+            if (!string.IsNullOrEmpty(developerUserIdList))
             {
-                _bactaConfigurationManager.RegisterConfiguration();
+                var developerUserIds = new HashSet<ulong>(developerUserIdList.Split(',').Select(ulong.Parse));
+                if ((message.Author.Id == _client.CurrentUser.Id || developerUserIds.Contains(message.Author.Id)))
+                {
+
+                    if (message.Content == "!refreshConfig")
+                    {
+                        _bactaConfigurationManager.RegisterConfiguration();
+                    }
+                    else if (message.Content == "!shutdown")
+                    {
+                        if (ShutdownRequested != null)
+                        {
+                            _logger.LogCritical("Shutdown requested by {User}: {UserID}", message.Author.Username, message.Author.Id);
+                            // send a DM to all users in developerUserIdList that the bot is shutting down and where it was shut down and by who
+                            foreach (var userId in developerUserIds)
+                            {
+                                var user = _client.GetUser(userId);
+                                if (user != null)
+                                {
+                                    await user.SendMessageAsync($"The bot is shutting down. \n\n" +
+                                        $"Shut down by: {message.Author.Mention} ({message.Author.Id}) \n\n" +
+                                        $"Location: {message.GetJumpUrl()}");
+                                }
+                            }
+
+                            await ShutdownRequested();
+                        }
+                    }
+
+                }
             }
+            else
+            {
+                _logger.LogWarning("DEVELOPER_USERID_LIST is not configured or is empty.");
+                return;
+            }
+
         }
 
         private async void BactaBotMentioned(SocketMessage message)
