@@ -1,10 +1,13 @@
 ﻿using DataObjects;
 using Discord;
 using Discord.Commands;
+using Discord.Interactions;
 using Discord.WebSocket;
 using LogicLayerInterfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Identity.Client;
+using System.Collections.Immutable;
 
 namespace LogicLayer
 {
@@ -45,39 +48,34 @@ namespace LogicLayer
 
         private async void PrefixCommands(SocketMessage message)
         {
-            // Ensure the configuration value is not null or empty before splitting  
-            var developerUserIdList = _configuration["DEVELOPER_USERID_LIST"];
-            if (!string.IsNullOrEmpty(developerUserIdList))
+            var developerUserIds = ParseDeveloperIDList();
+
+            if ((message.Author.Id == _client.CurrentUser.Id || developerUserIds.Contains(message.Author.Id)))
             {
-                var developerUserIds = new HashSet<ulong>(developerUserIdList.Split(',').Select(ulong.Parse));
-                if ((message.Author.Id == _client.CurrentUser.Id || developerUserIds.Contains(message.Author.Id)))
+                string prefixCommandInvoked = string.Empty;
+
+                if (message.Content == "!refreshConfig")
                 {
+                    prefixCommandInvoked = "refreshConfig";
 
-                    if (message.Content == "!refreshConfig")
+                    _logger.LogCritical("Refresh config requested by {User}: {UserID}", message.Author.Username, message.Author.Id);
+
+                    await MessageDevelopers(message, prefixCommandInvoked);
+
+                    _bactaConfigurationManager.RegisterConfiguration();
+                }
+                else if (message.Content == "!shutdown")
+                {
+                    if (ShutdownRequested != null)
                     {
-                        _bactaConfigurationManager.RegisterConfiguration();
-                    }
-                    else if (message.Content == "!shutdown")
-                    {
-                        if (ShutdownRequested != null)
-                        {
-                            _logger.LogCritical("Shutdown requested by {User}: {UserID}", message.Author.Username, message.Author.Id);
-                            // send a DM to all users in developerUserIdList that the bot is shutting down and where it was shut down and by who
-                            foreach (var userId in developerUserIds)
-                            {
-                                var user = _client.GetUser(userId);
-                                if (user != null)
-                                {
-                                    await user.SendMessageAsync($"The bot is shutting down. \n\n" +
-                                        $"Shut down by: {message.Author.Mention} ({message.Author.Id}) \n\n" +
-                                        $"Location: {message.GetJumpUrl()}");
-                                }
-                            }
+                        prefixCommandInvoked = "shutdown";
 
-                            await ShutdownRequested();
-                        }
-                    }
+                        _logger.LogCritical("Shutdown requested by {User}: {UserID}", message.Author.Username, message.Author.Id);
 
+                        await MessageDevelopers(message, prefixCommandInvoked);
+
+                        await ShutdownRequested();
+                    }
                 }
             }
             else
@@ -86,6 +84,34 @@ namespace LogicLayer
                 return;
             }
 
+        }
+
+        private HashSet<ulong> ParseDeveloperIDList()
+        {
+            var developerUserIdList = _configuration["DEVELOPER_USERID_LIST"];
+            if (string.IsNullOrEmpty(developerUserIdList))
+            {
+                _logger.LogWarning("DEVELOPER_USERID_LIST is not configured or is empty.");
+                return new HashSet<ulong>();
+            }
+            return new HashSet<ulong>(developerUserIdList.Split(',').Select(ulong.Parse));
+        }
+
+        private async Task MessageDevelopers(SocketMessage message, string prefixCommandInvoked)
+        {
+            var developerUserIds = ParseDeveloperIDList();
+
+            foreach (var userId in developerUserIds)
+            {
+                var user = _client.GetUser(userId);
+
+                if (user != null)
+                {
+                    await user.SendMessageAsync($"Prefix command invoked. \n\n" +
+                        $"{prefixCommandInvoked}: {message.Author.Mention} ({message.Author.Id}) \n\n" +
+                        $"Location: {message.GetJumpUrl()}");
+                }
+            }
         }
 
         private async void BactaBotMentioned(SocketMessage message)

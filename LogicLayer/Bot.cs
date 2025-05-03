@@ -26,7 +26,7 @@ namespace LogicLayer
 
         public async Task StartAsync(ServiceProvider services)
         {
-            string discordToken = _configuration["DISCORD_TEST_TOKEN"] ?? throw new Exception("Missing Discord token");
+            string discordToken = _configuration["DISCORD_TOKEN"] ?? throw new Exception("Missing Discord token");
 
             _bactaConfigurationManager.RegisterConfiguration();
 
