@@ -10,13 +10,12 @@ using System.Reflection;
 
 namespace LogicLayer
 {
-    public class Bot(ILogger<IBot> logger, IConfiguration configuration, DiscordSocketClient client/*, DiscordSocketConfig discordSocketConfig*/, CommandService commands, IEventManager eventHandler, IBactaConfigurationManager bactaConfigurationManager, IGuildManager guildManager, IChannelManager channelManager, IUserManager userManager) : IBot
+    public class Bot(ILogger<IBot> logger, IConfiguration configuration, DiscordSocketClient client, CommandService commands, IEventManager eventHandler, IBactaConfigurationManager bactaConfigurationManager, IGuildManager guildManager, IChannelManager channelManager, IUserManager userManager) : IBot
     {
         private ServiceProvider? _serviceProvider;
 
         private readonly ILogger<IBot> _logger = logger;
         private readonly IConfiguration _configuration = configuration;
-        // private readonly DiscordSocketConfig _discordSocketConfig = discordSocketConfig;
         private readonly DiscordSocketClient _client = client;
         private readonly CommandService _commands = commands;
         private readonly IEventManager _eventHandler = eventHandler;

@@ -39,13 +39,13 @@ namespace LogicLayer
         {
             try
             {
-                if (message.Flags.HasValue && !message.Flags.Value.HasFlag(MessageFlags.Ephemeral))
+                if (message.Flags.HasValue && !message.Flags.Value.HasFlag(MessageFlags.Ephemeral) && message.Channel is IGuildChannel guildChannel)
                 {
                     await _messageManager.AddDiscordMessageAsync(message);
+                    BactaBotMentioned(message);
                 }
 
                 PrefixCommands(message);
-                BactaBotMentioned(message);
             }
             catch (Exception ex)
             {
@@ -57,6 +57,12 @@ namespace LogicLayer
 
         public async Task MessageDeleted(Cacheable<IMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel)
         {
+            // if the message is not from a guild channel, return
+            if (channel.Value is not IGuildChannel guildChannel)
+            {
+                return;
+            }
+
             bool isDeleted = false;
 
             try
