@@ -11,7 +11,16 @@ using System.Collections.Immutable;
 
 namespace LogicLayer
 {
-    public class EventManager(ILogger<IEventManager> logger, IConfiguration configuration, DiscordSocketClient client, CommandService commands, IGuildMessageManager messageManager, ISlashCommandManager slashCommandManager, ISlashCommandRegistrar slashCommandRegistrar, IButtonManager buttonManager, IBactaConfigurationManager bactaConfigurationManager, IChatGPTManager chatGPTManager) : IEventManager
+    public class EventManager(ILogger<IEventManager> logger,
+        IConfiguration configuration,
+        DiscordSocketClient client,
+        CommandService commands,
+        IGuildMessageManager messageManager,
+        ISlashCommandManager slashCommandManager,
+        ISlashCommandRegistrar slashCommandRegistrar,
+        IButtonManager buttonManager,
+        IBactaConfigurationManager bactaConfigurationManager,
+        IChatGPTManager chatGPTManager) : IEventManager
     {
         private readonly ILogger<IEventManager> _logger = logger;
         private readonly IConfiguration _configuration = configuration;
@@ -77,11 +86,6 @@ namespace LogicLayer
                         await ShutdownRequested();
                     }
                 }
-            }
-            else
-            {
-                _logger.LogWarning("DEVELOPER_USERID_LIST is not configured or is empty.");
-                return;
             }
 
         }

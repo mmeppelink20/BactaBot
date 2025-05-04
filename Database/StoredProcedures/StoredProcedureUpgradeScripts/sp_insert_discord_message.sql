@@ -1,4 +1,4 @@
-CREATE PROCEDURE sp_insert_discord_message
+ALTER PROCEDURE sp_insert_discord_message
     @message_id BIGINT,
     @channel_id BIGINT,
     @user_id BIGINT,
@@ -38,9 +38,9 @@ BEGIN
         USING (SELECT @user_id AS user_id) AS source
         ON target.user_id = source.user_id
         WHEN MATCHED THEN
-            UPDATE SET user_name = @user_name, is_bot = @is_bot, avatar_url = @avatar_url
+            UPDATE SET username = @user_name, is_bot = @is_bot, avatar_url = @avatar_url
         WHEN NOT MATCHED THEN
-            INSERT (user_id, user_name, is_bot, avatar_url)
+            INSERT (user_id, username, is_bot, avatar_url)
             VALUES (@user_id, @user_name, @is_bot, @avatar_url);
 
         -- Upsert GuildUser

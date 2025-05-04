@@ -19,6 +19,7 @@
     public class DiscordMessageVM : DiscordMessage
     {
         public string? UserName { get; set; }
+        public DateTime? JoinedDate { get; set; }
         public string? NickName { get; set; }
         public string? ChannelName { get; set; }
         public string? ChannelType { get; set; }

@@ -64,7 +64,6 @@ namespace DataAccessLayer
             }
         }
 
-
         public Task<List<SocketMessage>> GetDiscordMessagesByUserChannel(ulong userId, ulong channelId, ulong guildId)
         {
             throw new NotImplementedException();
@@ -92,16 +91,22 @@ namespace DataAccessLayer
                         ("@message_id", SqlDbType.BigInt, message.MessageId),
                         ("@channel_id", SqlDbType.BigInt, message.ChannelId),
                         ("@user_id", SqlDbType.BigInt, message.UserId),
-                        ("@content", SqlDbType.VarChar, message.Content ?? (object)DBNull.Value),
-                        ("@clean_content", SqlDbType.VarChar, message.CleanContent ?? (object)DBNull.Value),
+                        ("@user_name", SqlDbType.NVarChar, message.UserName ?? (object)DBNull.Value),
+                        ("@nickname", SqlDbType.NVarChar, message.NickName ?? (object)DBNull.Value),
+                        ("@joined_at", SqlDbType.DateTime, message.MessageDatetime),
+                        ("@is_inactive", SqlDbType.Bit, false),
+                        ("@is_bot", SqlDbType.Bit, false),
+                        ("@avatar_url", SqlDbType.NVarChar, message.AttachmentUrl ?? (object)DBNull.Value),
+                        ("@content", SqlDbType.NVarChar, message.Content ?? (object)DBNull.Value),
+                        ("@clean_content", SqlDbType.NVarChar, message.CleanContent ?? (object)DBNull.Value),
                         ("@message_datetime", SqlDbType.DateTime, message.MessageDatetime),
                         ("@isEdited", SqlDbType.Bit, message.IsEdited),
                         ("@message_edited_datetime", SqlDbType.DateTime, message.MessageEditedDatetime ?? (object)DBNull.Value),
-                        ("@attachment_url", SqlDbType.VarChar, message.AttachmentUrl ?? (object)DBNull.Value),
-                        ("@message_link", SqlDbType.VarChar, message.MessageLink ?? (object)DBNull.Value),
+                        ("@attachment_url", SqlDbType.NVarChar, message.AttachmentUrl ?? (object)DBNull.Value),
+                        ("@message_link", SqlDbType.NVarChar, message.MessageLink ?? (object)DBNull.Value),
                         ("@replied_to_message_id", SqlDbType.BigInt, message.RepliedToMessageId ?? (object)DBNull.Value),
-                        ("@channel_name", SqlDbType.VarChar, message.ChannelName ?? (object)DBNull.Value),
-                        ("@channel_type", SqlDbType.VarChar, message.ChannelType ?? (object)DBNull.Value),
+                        ("@channel_name", SqlDbType.NVarChar, message.ChannelName ?? (object)DBNull.Value),
+                        ("@channel_type", SqlDbType.NVarChar, message.ChannelType ?? (object)DBNull.Value),
                         ("@guild_id", SqlDbType.BigInt, message.GuildId ?? (object)DBNull.Value)
                     };
 
