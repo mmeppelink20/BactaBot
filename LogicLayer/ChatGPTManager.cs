@@ -71,8 +71,6 @@ namespace LogicLayer
                             $"REPLIED TO MESSAGE ID (nullable): {message.RepliedToMessageId} \n\n";
                     }
 
-                    // log the prompt
-                    _logger.LogTrace((int)BactaLogging.LogEvent.ChatGPT, "Prompt: {prompt}", prompt);
                 }
 
 
