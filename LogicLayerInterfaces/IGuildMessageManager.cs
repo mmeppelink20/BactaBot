@@ -1,4 +1,5 @@
 ﻿using DataObjects;
+using Discord;
 using Discord.WebSocket;
 
 namespace LogicLayerInterfaces
@@ -8,5 +9,6 @@ namespace LogicLayerInterfaces
         Task AddDiscordMessageAsync(SocketMessage message);
         Task<List<DiscordMessageVM>> RetrieveDiscordMessagesAsync();
         Task<List<DiscordMessageVM>> RetrieveDiscordMessagesByChannelIDAndMinutesAsync(ulong channelID, int minutes);
+        Task<bool> DeleteDiscordMessageAsync(ulong messageID);
     }
 }

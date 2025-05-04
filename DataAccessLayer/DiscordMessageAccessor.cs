@@ -1,5 +1,6 @@
 ﻿using DataAccessLayerInterfaces;
 using DataObjects;
+using Discord;
 using Discord.WebSocket;
 using Microsoft.Data.SqlClient;
 using System.Data;
@@ -8,9 +9,31 @@ namespace DataAccessLayer
 {
     public class DiscordMessageAccessor(IDBConnection dbConnection) : IDiscordMessageAccessor
     {
-        public Task DeleteDiscordMessage(DiscordMessage message)
+        public async Task<bool> DeleteDiscordMessage(ulong messageID)
         {
-            throw new NotImplementedException();
+            const string cmdText = "sp_delete_discord_message";
+            using (var conn = dbConnection.GetConnection())
+            {
+                await conn.OpenAsync().ConfigureAwait(false);
+                using (var cmd = new SqlCommand(cmdText, conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    var parameters = new (string, SqlDbType, object)[]
+                    {
+                        ("@message_id", SqlDbType.BigInt, messageID),
+                        ("@message_deleted_datetime", SqlDbType.DateTime, DateTime.UtcNow)
+                    };
+
+                    foreach (var (name, type, value) in parameters)
+                    {
+                        cmd.Parameters.Add(name, type).Value = value;
+                    }
+
+                    var rowsAffected = await cmd.ExecuteNonQueryAsync().ConfigureAwait(false);
+                    return rowsAffected > 0;
+                }
+            }
         }
 
         public Task<SocketMessage> GetDiscordMessage(DiscordMessage message)

@@ -1,4 +1,5 @@
 ﻿using DataObjects;
+using Discord;
 using Discord.WebSocket;
 
 namespace DataAccessLayerInterfaces
@@ -12,7 +13,7 @@ namespace DataAccessLayerInterfaces
         Task UpdateDiscordMessage(DiscordMessage message);
 
         // delete
-        Task DeleteDiscordMessage(DiscordMessage message);
+        Task<bool> DeleteDiscordMessage(ulong messageID);
 
         // select
         Task<SocketMessage> GetDiscordMessage(DiscordMessage message);

@@ -10,6 +10,8 @@ CREATE TABLE DiscordMessages (
     attachment_url NVARCHAR(MAX),
     message_link NVARCHAR(MAX),
     replied_to_message_id BIGINT DEFAULT NULL,
+    isDeleted BIT,
+    message_deleted_datetime DATETIME NOT NULL,
     CONSTRAINT FK_DiscordMessage_Channel FOREIGN KEY (channel_id) REFERENCES Channels(channel_id),
     CONSTRAINT FK_DiscordMessage_Author FOREIGN KEY (user_id) REFERENCES Users(user_id)
 );

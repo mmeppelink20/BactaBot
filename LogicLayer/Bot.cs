@@ -10,12 +10,13 @@ using System.Reflection;
 
 namespace LogicLayer
 {
-    public class Bot(ILogger<IBot> logger, IConfiguration configuration, DiscordSocketClient client, CommandService commands, IEventManager eventHandler, IBactaConfigurationManager bactaConfigurationManager, IGuildManager guildManager, IChannelManager channelManager, IUserManager userManager) : IBot
+    public class Bot(ILogger<IBot> logger, IConfiguration configuration, DiscordSocketClient client/*, DiscordSocketConfig discordSocketConfig*/, CommandService commands, IEventManager eventHandler, IBactaConfigurationManager bactaConfigurationManager, IGuildManager guildManager, IChannelManager channelManager, IUserManager userManager) : IBot
     {
         private ServiceProvider? _serviceProvider;
 
         private readonly ILogger<IBot> _logger = logger;
         private readonly IConfiguration _configuration = configuration;
+        // private readonly DiscordSocketConfig _discordSocketConfig = discordSocketConfig;
         private readonly DiscordSocketClient _client = client;
         private readonly CommandService _commands = commands;
         private readonly IEventManager _eventHandler = eventHandler;
@@ -34,7 +35,6 @@ namespace LogicLayer
 
             // Register the command modules
             await _commands.AddModulesAsync(Assembly.GetExecutingAssembly(), _serviceProvider);
-
 
             await _client.LoginAsync(TokenType.Bot, discordToken);
             await _client.StartAsync();
@@ -55,7 +55,6 @@ namespace LogicLayer
                 await Task.Delay(1000);
             }
 
-
             if (_client.ConnectionState != ConnectionState.Connected)
             {
                 // determine whether it's an internect connection issue, or an invalid api token
@@ -75,6 +74,7 @@ namespace LogicLayer
             // Register event handlers
             _client.MessageReceived += _eventHandler.MessageRecieved;
             _client.SlashCommandExecuted += _eventHandler.SlashCommandExecuted;
+            _client.MessageDeleted += _eventHandler.MessageDeleted;
             _client.ButtonExecuted += _eventHandler.ButtonExecuted;
             _eventHandler.ShutdownRequested += StopAsync;
 
@@ -102,7 +102,6 @@ namespace LogicLayer
             await _userManager.RegisterGuildUsersAsync();
 
         }
-
         public async Task StopAsync()
         {
             _logger.LogInformation((int)BactaLogging.LogEvent.StartUpShutDown, "Shutting down");

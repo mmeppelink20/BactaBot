@@ -43,10 +43,12 @@ namespace BactaBot
                     options.SetMinimumLevel(configuration.GetSection("Logging").GetValue<Microsoft.Extensions.Logging.LogLevel>("Default"));
                 })
                 .AddSingleton<IConfiguration>(configuration)
+                .AddSingleton<DiscordSocketConfig>()
                 .AddSingleton<DiscordSocketClient>(provider =>
                 {
                     return new DiscordSocketClient(new DiscordSocketConfig
                     {
+                        MessageCacheSize = 5000,
                         GatewayIntents =
                             GatewayIntents.AllUnprivileged
                             | GatewayIntents.MessageContent
@@ -54,6 +56,8 @@ namespace BactaBot
                             | GatewayIntents.Guilds
                             | GatewayIntents.GuildMessages
                             | GatewayIntents.GuildPresences
+                            | GatewayIntents.All
+
                     });
                 })
                 .AddSingleton<CommandService>()

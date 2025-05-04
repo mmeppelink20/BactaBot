@@ -58,6 +58,23 @@ namespace LogicLayer
             }
         }
 
+        public async Task<bool> DeleteDiscordMessageAsync(ulong messageID)
+        {
+            bool isDeleted = false;
+
+            try
+            {
+                isDeleted = await _discordMessageAccessor.DeleteDiscordMessage(messageID); 
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError((int)BactaLogging.LogEvent.MessageRelated, ex, "An error occurred while deleting the guild message");
+
+            }
+
+            return isDeleted;
+        }
+
         public Task<List<DiscordMessageVM>> RetrieveDiscordMessagesAsync()
         {
             throw new NotImplementedException();

@@ -1,4 +1,5 @@
-﻿using Discord.WebSocket;
+﻿using Discord;
+using Discord.WebSocket;
 
 namespace LogicLayerInterfaces
 {
@@ -6,6 +7,8 @@ namespace LogicLayerInterfaces
     {
         Func<Task>? ShutdownRequested { get; set; }
         Task MessageRecieved(SocketMessage message);
+        Task MessageDeleted(Cacheable<IMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel);
+        Task MessageUpdated(SocketMessage oldMessage, SocketMessage newMessage);
         Task SlashCommandExecuted(SocketSlashCommand command);
         Task ButtonExecuted(SocketMessageComponent component);
 
