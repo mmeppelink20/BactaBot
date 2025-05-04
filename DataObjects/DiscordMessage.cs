@@ -13,6 +13,8 @@
         public string? AttachmentUrl { get; set; }
         public string? MessageLink { get; set; }
         public ulong? RepliedToMessageId { get; set; }
+        public bool IsDeleted { get; set; }
+        public DateTime? MessageDeletedDatetime { get; set; }
 
     }
 

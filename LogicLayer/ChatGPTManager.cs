@@ -28,6 +28,7 @@ namespace LogicLayer
         public async Task<string> RetrieveChatBotCompletionFromChatGPTAsync(SocketMessage userMessage, int minutes)
         {
             var response = string.Empty;
+
             try
             {
                 ChatClient client = new(model: _configuration["BACTA_BOT_MODEL"], apiKey: _configuration["OPEN_AI_API_KEY"]);
@@ -35,7 +36,7 @@ namespace LogicLayer
 
                 var messages = await _messageManager.RetrieveDiscordMessagesByChannelIDAndMinutesAsync(userMessage.Channel.Id, minutes);
 
-                var prompt = $"{_configuration["BACTA_BOT_PROMPT"]}\n\n";
+                var prompt = $"[SYSTEM] {_configuration["BACTA_BOT_PROMPT"]}\n\n";
 
                 foreach(var message in messages)
                 {
@@ -49,13 +50,29 @@ namespace LogicLayer
                         role = "[USER (QUESTION TO RESPOND TO TAKE ACTION ON WHAT'S IN THIS MESSAGE)]";
                     }
 
-                    prompt +=
-                        $" {role} USERNAME: {message.UserName} | " +
-                        $"NICKNAME: {message.NickName} | " +
-                        $"MESSAGE CONTENT: {message.CleanContent} | " +
-                        $"MESSAGE DATETIME: {message.MessageDatetime} | " +
-                        $"MESSAGE ID: {message.MessageId} | " +
-                        $"REPLIED TO MESSAGE ID (nullable): {message.RepliedToMessageId} \n\n";
+                    if (message.IsDeleted)
+                    {
+                        prompt += $" {role} USERNAME: {message.UserName} | " +
+                            $"NICKNAME: {message.NickName} | " +
+                            $"[THIS MESSAGE WAS DELETED]: | " +
+                            $"MESSAGE DATETIME: {message.MessageDatetime} | " +
+                            $"MESSAGE ID: {message.MessageId} | " +
+                            $"REPLIED TO MESSAGE ID (nullable): {message.RepliedToMessageId} | " +
+                            $"MESSAGE DELETED DATETIME: {message.MessageDeletedDatetime} \n\n";
+                    }
+                    else
+                    {
+                        prompt +=
+                            $" {role} USERNAME: {message.UserName} | " +
+                            $"NICKNAME: {message.NickName} | " +
+                            $"MESSAGE CONTENT: {message.CleanContent} | " +
+                            $"MESSAGE DATETIME: {message.MessageDatetime} | " +
+                            $"MESSAGE ID: {message.MessageId} | " +
+                            $"REPLIED TO MESSAGE ID (nullable): {message.RepliedToMessageId} \n\n";
+                    }
+
+                    // log the prompt
+                    _logger.LogTrace((int)BactaLogging.LogEvent.ChatGPT, "Prompt: {prompt}", prompt);
                 }
 
 
@@ -67,6 +84,7 @@ namespace LogicLayer
             {
                 _logger.LogError((int)BactaLogging.LogEvent.ChatGPT, ex, "Failed to retrieve Bacta bot mention response from ChatGPT");
             }
+
             // if null or empty, return a default message
             return response ?? "Failed to retrieve Bacta bot mention response";
         }

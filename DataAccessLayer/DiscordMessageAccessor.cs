@@ -76,6 +76,8 @@ namespace DataAccessLayer
                                 AttachmentUrl = reader.IsDBNull(10) ? null : reader.GetString(10),
                                 MessageLink = reader.IsDBNull(11) ? null : reader.GetString(11),
                                 RepliedToMessageId = reader.IsDBNull(12) ? null : Convert.ToUInt64(reader.GetInt64(12)),
+                                IsDeleted = reader.GetBoolean(13),
+                                MessageDeletedDatetime = reader.IsDBNull(14) ? null : reader.GetDateTime(14)
                             };
 
                             messages.Add(message);

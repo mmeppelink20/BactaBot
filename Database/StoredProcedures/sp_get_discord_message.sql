@@ -32,7 +32,7 @@ GO
 
 
 CREATE PROCEDURE sp_get_recent_discord_messages
-    @minutes_back INT = 120,
+    @minutes_back INT = 60,
     @channel_id BIGINT = NULL
 AS
 BEGIN
@@ -51,7 +51,9 @@ BEGIN
         dm.message_edited_datetime,
         dm.attachment_url,
         dm.message_link,
-        dm.replied_to_message_id
+        dm.replied_to_message_id,
+        dm.isDeleted,
+        dm.message_deleted_datetime,
     FROM DiscordMessages dm
     INNER JOIN Users u ON dm.user_id = u.user_id
     INNER JOIN Channels c ON dm.channel_id = c.channel_id
