@@ -51,6 +51,9 @@ namespace LogicLayer
 
         public async Task CommandExecutorAsync(SocketSlashCommand command)
         {
+            // start timer
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+
             if (_slashCommandList.TryGetValue(command.Data.Name, out var handler))
             {
                 await command.DeferAsync(ephemeral: _ephemeralCommands.Contains(command.Data.Name));

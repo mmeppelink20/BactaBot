@@ -95,19 +95,23 @@ namespace LogicLayer
 
         public async Task HandlePingCommand(SocketSlashCommand command)
         {
-            await command.RespondAsync("Pong!", ephemeral: true, components: ResponseButtonBuilder.Build());
+            var responseTime = command.CreatedAt - DateTimeOffset.UtcNow;
+            var response = $"Pong! \n\n({responseTime.Milliseconds} ms)";
+
+            await command.FollowupAsync(response, ephemeral: true, components: ResponseButtonBuilder.Build());
         }
+
 
         public async Task HandleCreditsCommand(SocketSlashCommand command)
         {
             int credits = 100;
-            await command.RespondAsync($"You have {credits} credits", ephemeral: true);
+            await command.FollowupAsync($"You have {credits} credits", ephemeral: true);
         }
 
         public async Task HandleLeaderboardCommand(SocketSlashCommand command)
         {
 
-            await command.RespondAsync("Leaderboard", ephemeral: true);
+            await command.FollowupAsync("Leaderboard", ephemeral: true);
         }
 
         private static ComponentBuilder ResponseButtonBuilder

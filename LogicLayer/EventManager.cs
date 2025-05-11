@@ -109,6 +109,7 @@ namespace LogicLayer
                     await MessageDevelopers(message, prefixCommandInvoked);
 
                     _bactaConfigurationManager.RegisterConfiguration();
+
                 }
                 else if (message.Content == "!shutdown")
                 {
