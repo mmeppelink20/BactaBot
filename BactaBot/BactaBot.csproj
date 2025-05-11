@@ -7,7 +7,7 @@
     <Nullable>enable</Nullable>
     <EnforceCodeStyleInBuild>False</EnforceCodeStyleInBuild>
   </PropertyGroup>
-
+	
   <ItemGroup>
     <PackageReference Include="Discord.Net" Version="3.17.2" />
     <PackageReference Include="Discord.Net.Commands" Version="3.17.2" />
@@ -25,7 +25,7 @@
     <PackageReference Include="NLog.Extensions.Logging" Version="5.4.0" />
 	<PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="9.0.3" />
   </ItemGroup>
-
+	
   <ItemGroup>
 	  <ProjectReference Include="..\LogicLayerInterfaces\LogicLayerInterfaces.csproj" />
 	  <ProjectReference Include="..\LogicLayer\LogicLayer.csproj" />
@@ -47,6 +47,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Properties\nlog.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

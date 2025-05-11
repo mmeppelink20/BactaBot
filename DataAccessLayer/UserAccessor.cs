@@ -5,13 +5,13 @@ using System.Data;
 
 namespace DataAccessLayer
 {
-    public class UserAccessor : IUserAccessor
+    public class UserAccessor(IDBConnection dbConnection) : IUserAccessor
     {
-        private readonly DBConnection _connectionFactory = new();
+        private readonly IDBConnection _dbConnection = dbConnection;
 
         public async Task DeactivateMultipleUsersAsync(Dictionary<ulong, User> users)
         {
-            using var conn = _connectionFactory.GetConnection();
+            using var conn = _dbConnection.GetConnection();
             await conn.OpenAsync();
 
             using var cmd = new SqlCommand("sp_deactivate_guild_users", conn)
@@ -26,7 +26,7 @@ namespace DataAccessLayer
 
         public async Task InsertMultipleUsersAsync(Dictionary<ulong, User> users)
         {
-            using var conn = _connectionFactory.GetConnection();
+            using var conn = _dbConnection.GetConnection();
             await conn.OpenAsync();
 
             using var cmd = new SqlCommand("sp_insert_multiple_users", conn)
@@ -41,7 +41,7 @@ namespace DataAccessLayer
 
         public async Task InsertGuildUsers(Dictionary<ulong, List<GuildUser>> users)
         {
-            using var conn = _connectionFactory.GetConnection();
+            using var conn = _dbConnection.GetConnection();
             await conn.OpenAsync();
 
             using var cmd = new SqlCommand("sp_insert_guild_users", conn)
@@ -56,7 +56,7 @@ namespace DataAccessLayer
 
         public async Task DeactivateGuildUsers(Dictionary<ulong, List<GuildUser>> users)
         {
-            using var conn = _connectionFactory.GetConnection();
+            using var conn = _dbConnection.GetConnection();
             await conn.OpenAsync();
 
             using var cmd = new SqlCommand("sp_deactivate_guild_users", conn)

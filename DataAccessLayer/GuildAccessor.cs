@@ -4,15 +4,15 @@ using System.Data;
 
 namespace DataAccessLayer
 {
-    public class GuildAccessor : IGuildAccessor
+    public class GuildAccessor(IDBConnection dbConnection) : IGuildAccessor
     {
+        private readonly IDBConnection _dbConnection = dbConnection;
         public async Task DeactivateMultipleGuildsAsync(List<ulong> guilds)
         {
             string cmdText = "sp_deactivate_guilds";
 
-            var connectionFactory = new DBConnection();
 
-            using (var conn = connectionFactory.GetConnection())
+            using (var conn = _dbConnection.GetConnection())
             {
                 conn.Open();
                 using (var cmd = new SqlCommand(cmdText, conn))
@@ -51,9 +51,7 @@ namespace DataAccessLayer
         {
             string cmdText = "sp_insert_guild";
 
-            var connectionFactory = new DBConnection();
-
-            using (var conn = connectionFactory.GetConnection())
+            using (var conn = _dbConnection.GetConnection())
             {
                 await conn.OpenAsync();
 
@@ -80,9 +78,7 @@ namespace DataAccessLayer
         {
             string cmdText = "sp_insert_multiple_guilds";
 
-            var connectionFactory = new DBConnection();
-
-            using (var conn = connectionFactory.GetConnection())
+            using (var conn = _dbConnection.GetConnection())
             {
                 await conn.OpenAsync();
 

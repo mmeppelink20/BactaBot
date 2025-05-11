@@ -4,14 +4,14 @@ using System.Data;
 
 namespace DataAccessLayer
 {
-    public class ConfigurationAccessor : IConfigurationAccessor
+    public class ConfigurationAccessor(IDBConnection configuration) : IConfigurationAccessor
     {
+        private readonly IDBConnection _configuration = configuration;
         public async Task<string> GetConfigurationKeyValueAsync(string key)
         {
             string value = string.Empty;
 
-            var connectionFactory = new DBConnection();
-            var conn = connectionFactory.GetConnection();
+            var conn = _configuration.GetConnection();
 
             var cmdText = "sp_get_configuration_by_key";
 
@@ -44,8 +44,7 @@ namespace DataAccessLayer
         {
             Dictionary<string, string> keyValuePairs = [];
 
-            var connectionFactory = new DBConnection();
-            var conn = connectionFactory.GetConnection();
+            var conn = _configuration.GetConnection();
 
             var cmdText = "sp_get_all_configuration_values";
 

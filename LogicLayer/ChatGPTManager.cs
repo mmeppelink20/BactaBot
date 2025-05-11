@@ -145,7 +145,7 @@ namespace LogicLayer
             }
             catch (Exception ex)
             {
-                _logger.LogError((int)BactaLogging.LogEvent.ChatGPT, ex, "Failed to retrieve conversation summary from ChatGPT");
+                _logger.LogError((int)BactaLogging.LogEvent.ChatGPT, ex, "Failed to retrieve conversation from ChatGPT");
             }
 
             // if null or empty, return a default message

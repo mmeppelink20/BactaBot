@@ -365,4 +365,6 @@ FodyWeavers.xsd
 # Configuration files (secrets, environment-specific settings)
 launchSettings.json
 launchSettings.*.json
+appsettings.json
+appsettings.*.json
 .env

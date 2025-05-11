@@ -4,15 +4,14 @@ using System.Data;
 
 namespace DataAccessLayer
 {
-    public class ChannelAccessor : IChannelAccessor
+    public class ChannelAccessor(IDBConnection dbConnection) : IChannelAccessor
     {
+        private readonly IDBConnection _dbConnection = dbConnection;
         public async Task DeactivateMultipleChannelsAsync(List<ulong> channels)
         {
             string cmdText = "sp_deactivate_channels";
 
-            var connectionFactory = new DBConnection();
-
-            using (var conn = connectionFactory.GetConnection())
+            using (var conn = _dbConnection.GetConnection())
             {
                 await conn.OpenAsync();
                 using (var cmd = new SqlCommand(cmdText, conn))
@@ -51,9 +50,7 @@ namespace DataAccessLayer
         {
             string cmdText = "sp_insert_multiple_channels";
 
-            var connectionFactory = new DBConnection();
-
-            using (var conn = connectionFactory.GetConnection())
+            using (var conn = _dbConnection.GetConnection())
             {
                 await conn.OpenAsync();
                 using (var cmd = new SqlCommand(cmdText, conn))
