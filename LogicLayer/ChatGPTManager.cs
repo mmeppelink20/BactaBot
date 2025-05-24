@@ -47,7 +47,7 @@ namespace LogicLayer
 
                     if(message.MessageId == userMessage.Id)
                     {
-                        role = "[USER (QUESTION TO RESPOND TO TAKE ACTION ON WHAT'S IN THIS MESSAGE)]";
+                        role = "[USER - QUESTION]";
                     }
 
                     if (message.IsDeleted)
@@ -85,11 +85,6 @@ namespace LogicLayer
 
             // if null or empty, return a default message
             return response ?? "Failed to retrieve Bacta bot mention response";
-        }
-
-        public Task<string> RetrieveChatBotCompletionFromChatGPTAsync(ulong channelID, int minutes, SocketMessage userMessage)
-        {
-            throw new NotImplementedException();
         }
 
         public async Task<string> RetrieveConversationSummaryFromChatGPTAsync(List<SocketMessage> messages)
@@ -142,6 +137,9 @@ namespace LogicLayer
                 ChatCompletion completionResult = await client.CompleteChatAsync(prompt);
 
                 response = completionResult.Content[0].Text;
+
+                // log the prompt
+                _logger.LogInformation("Prompt: \n\n{Prompt}\n\n", prompt);
             }
             catch (Exception ex)
             {

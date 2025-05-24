@@ -95,7 +95,7 @@ namespace LogicLayer
 
         public async Task HandlePingCommand(SocketSlashCommand command)
         {
-            var responseTime = command.CreatedAt - DateTimeOffset.UtcNow;
+            var responseTime = DateTimeOffset.UtcNow - command.CreatedAt;
             var response = $"Pong! \n\n({responseTime.Milliseconds} ms)";
 
             await command.FollowupAsync(response, ephemeral: true, components: ResponseButtonBuilder.Build());

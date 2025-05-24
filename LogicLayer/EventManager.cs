@@ -139,7 +139,7 @@ namespace LogicLayer
             return new HashSet<ulong>(developerUserIdList.Split(',').Select(ulong.Parse));
         }
 
-        private async Task MessageDevelopers(SocketMessage message, string prefixCommandInvoked)
+        private async Task MessageDevelopers(SocketMessage message, string parameter)
         {
             var developerUserIds = ParseDeveloperIDList();
 
@@ -149,29 +149,55 @@ namespace LogicLayer
 
                 if (user != null)
                 {
-                    await user.SendMessageAsync($"Prefix command invoked. \n\n" +
-                        $"{prefixCommandInvoked}: {message.Author.Mention} ({message.Author.Id}) \n\n" +
-                        $"Location: {message.GetJumpUrl()}");
+                    await user.SendMessageAsync($"{parameter}: {message.Author.Mention} ({message.Author.Id}) \n\n" + $"Location: {message.GetJumpUrl()}");
                 }
             }
         }
 
         private async void BactaBotMentioned(SocketMessage message)
         {
-            // if the message contains a mention of the bot
-            if (message.Content.Contains(_client.CurrentUser.Mention))
+            if (message is not SocketUserMessage userMessage)
             {
-                // start typing
-                await message.Channel.TriggerTypingAsync();
+                return;
+            }
 
-                if (message is SocketUserMessage userMessage)
+            bool botMentioned = userMessage.MentionedUsers.Any(user => user.Id == _client.CurrentUser.Id);
+            bool replyingToBot = false;
+
+            if (message.Reference?.MessageId.IsSpecified == true)
+            {
+                try
                 {
-                    var response = await _chatGPTManager.RetrieveChatBotCompletionFromChatGPTAsync(message, int.Parse(_configuration["MINUTES_FOR_CHAT"] ?? "60"));
-
-                    await userMessage.ReplyAsync(response);
+                    var referencedMessage = await message.Channel.GetMessageAsync(message.Reference.MessageId.Value);
+                    replyingToBot = referencedMessage?.Author.Id == _client.CurrentUser.Id;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning((int)BactaLogging.LogEvent.MessageRelated, ex, "Failed to retrieve referenced message.");
                 }
             }
+
+            if (!botMentioned && !replyingToBot) 
+            {
+                return;
+            }
+
+            try
+            {
+                await message.Channel.TriggerTypingAsync();
+
+                var response = await _chatGPTManager.RetrieveChatBotCompletionFromChatGPTAsync(message, int.Parse(_configuration["MINUTES_FOR_CHAT"] ?? "60"));
+
+                await userMessage.ReplyAsync(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError((int)BactaLogging.LogEvent.ChatGPT, ex, "An error occurred while retrieving the chat bot completion.");
+                await MessageDevelopers(message, ex.ToString());
+                await userMessage.ReplyAsync("An error occurred while processing your message. Please try again later.");
+            }
         }
+
 
         public async Task SlashCommandExecuted(SocketSlashCommand command)
         {

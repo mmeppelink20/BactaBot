@@ -1,57 +1,42 @@
 ﻿using Discord;
-using Discord.Commands;
 using Discord.WebSocket;
 using LogicLayerInterfaces;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
+using static DataObjects.ButtonIdContainer;
 
 namespace LogicLayer
 {
-    public enum ButtonId
-    {
-        btnDm,
-        btnShare
-    }
     public class Buttons : IButtons
     {
         private readonly ILogger<IButtons> _logger;
 
-        // Keeps track of the button states (key = button ID, value = disabled state)
-        private readonly ConcurrentDictionary<ButtonId, bool> _buttonIsDisabledStates;
+        private class ButtonState
+        {
+            public bool DmDisabled { get; set; }
+            public bool ShareDisabled { get; set; }
+        }
+
+        // Key = messageId, Value = button states for that message
+        private readonly ConcurrentDictionary<ulong, ButtonState> _buttonStates = new();
 
         public Buttons(ILogger<IButtons> logger)
         {
             _logger = logger;
-
-
-            // Initialize button states in the constructor (default states can be customized here)
-            _buttonIsDisabledStates = new ConcurrentDictionary<ButtonId, bool>
-            {
-                [ButtonId.btnDm] = false,   // DM button initially enabled
-                [ButtonId.btnShare] = false  // Share button initially enabled
-            };
         }
-        public async Task BtnDm(SocketMessageComponent component, string message)
+
+        public async Task BtnDm(SocketMessageComponent component)
         {
             try
             {
                 _logger.LogInformation("DM button clicked");
 
-                // Update the message with the new button states
-                await component.UpdateAsync(msg =>
-                {
-                    var builder = new ComponentBuilder();
-                    // Disable DM button and enable Share button based on their states in the dictionary
-                    CreateBtnDM(builder, isDisabled: true);
-                    CreateBtnShare(builder, isDisabled: _buttonIsDisabledStates[ButtonId.btnShare]);
-                    msg.Components = builder.Build();
-                });
+                var messageId = component.Message.Id;
+                var state = _buttonStates.GetOrAdd(messageId, new ButtonState());
 
-                // Mark the DM button as clicked
-                _buttonIsDisabledStates[ButtonId.btnDm] = true;
+                state.DmDisabled = true;
 
-                // send a DM to the user who clicked the button with the content of the message
+                await UpdateComponentState(component, state);
                 await component.User.SendMessageAsync(component.Message.Content);
             }
             catch (Exception ex)
@@ -61,32 +46,18 @@ namespace LogicLayer
             }
         }
 
-        public void CreateBtnDM(ComponentBuilder builder, bool isDisabled = false)
-        {
-            // Create the DM button
-            builder.WithButton("DM", ButtonId.btnDm.ToString(), ButtonStyle.Primary, disabled: isDisabled);
-        }
-
-        public async Task BtnShare(SocketMessageComponent component, string message)
+        public async Task BtnShare(SocketMessageComponent component)
         {
             try
             {
                 _logger.LogInformation("Share button clicked");
 
-                // Update the message with the new button states
-                await component.UpdateAsync(msg =>
-                {
-                    var builder = new ComponentBuilder();
-                    // Disable Share button and enable DM button based on their states in the dictionary
-                    CreateBtnDM(builder, isDisabled: _buttonIsDisabledStates[ButtonId.btnDm]);
-                    CreateBtnShare(builder, isDisabled: true);
-                    msg.Components = builder.Build();
-                });
+                var messageId = component.Message.Id;
+                var state = _buttonStates.GetOrAdd(messageId, new ButtonState());
 
-                // Mark the Share button as clicked
-                _buttonIsDisabledStates[ButtonId.btnShare] = true;
+                state.ShareDisabled = true;
 
-                // send a message to the channel where the button was clicked with the content of the message
+                await UpdateComponentState(component, state);
                 await component.Channel.SendMessageAsync($"{component.Message.Content} {component.User.Mention}");
             }
             catch (Exception ex)
@@ -94,12 +65,27 @@ namespace LogicLayer
                 _logger.LogError(ex, "An error occurred while handling the Share button click.");
                 await component.RespondAsync("An error occurred while processing your command.", ephemeral: true);
             }
+        }
 
+        private async Task UpdateComponentState(SocketMessageComponent component, ButtonState state)
+        {
+            await component.UpdateAsync(msg =>
+            {
+                var builder = new ComponentBuilder();
+                CreateBtnDM(builder, state.DmDisabled);
+                CreateBtnShare(builder, state.ShareDisabled);
+                msg.Components = builder.Build();
+            });
+        }
+
+        public void CreateBtnDM(ComponentBuilder builder, bool isDisabled = false)
+        {
+            builder.WithButton(ButtonId.btnDm.GetLabel(), ButtonId.btnDm.ToString(), ButtonId.btnDm.GetStyle(), disabled: isDisabled);
         }
 
         public void CreateBtnShare(ComponentBuilder builder, bool isDisabled = false)
         {
-            builder.WithButton("Share", ButtonId.btnShare.ToString(), ButtonStyle.Success, disabled: isDisabled);
+            builder.WithButton(ButtonId.btnShare.GetLabel(), ButtonId.btnShare.ToString(), ButtonId.btnShare.GetStyle(), disabled: isDisabled);
         }
     }
 }

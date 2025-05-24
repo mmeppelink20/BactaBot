@@ -1,8 +1,10 @@
-﻿using Discord.Commands;
+﻿using DataObjects;
+using Discord.Commands;
 using Discord.WebSocket;
 using LogicLayerInterfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using static DataObjects.ButtonIdContainer;
 
 namespace LogicLayer
 {
@@ -17,7 +19,13 @@ namespace LogicLayer
 
         private readonly Dictionary<string, Func<SocketMessageComponent, Task>> _buttonList;
 
-        public ButtonManager(ILogger<IButtonManager> logger, IConfiguration configuration, DiscordSocketClient client, CommandService commands, IGuildMessageManager messageManager, IButtons buttons)
+        public ButtonManager(
+            ILogger<IButtonManager> logger,
+            IConfiguration configuration,
+            DiscordSocketClient client,
+            CommandService commands,
+            IGuildMessageManager messageManager,
+            IButtons buttons)
         {
             _logger = logger;
             _configuration = configuration;
@@ -26,25 +34,23 @@ namespace LogicLayer
             _messageManager = messageManager;
             _buttons = buttons;
 
+            // Map button IDs to handlers
             _buttonList = new Dictionary<string, Func<SocketMessageComponent, Task>>
             {
-                { "btnDm", component => _buttons.BtnDm(component, "DefaultMessage") },
-                { "btnShare", component => _buttons.BtnShare(component, "DefaultMessage") }
+                { ButtonId.btnDm.ToString(), _buttons.BtnDm },
+                { ButtonId.btnShare.ToString(), _buttons.BtnShare }
             };
-
         }
 
         public Task ButtonExecutorAsync(SocketMessageComponent component)
         {
-            if (_buttonList.TryGetValue(component.Data.CustomId, out Func<SocketMessageComponent, Task>? value))
+            if (_buttonList.TryGetValue(component.Data.CustomId, out var handler))
             {
-                return value(component);
+                return handler(component);
             }
-            else
-            {
-                _logger.LogError("Unknown button clicked");
-                return Task.CompletedTask;
-            }
+
+            _logger.LogWarning("Unknown button clicked: {ButtonId}", component.Data.CustomId);
+            return component.RespondAsync("That button doesn't do anything.", ephemeral: true);
         }
     }
 }
