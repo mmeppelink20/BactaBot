@@ -46,7 +46,7 @@ namespace LogicLayer
                 { "leaderboard", slashCommands.HandleLeaderboardCommand }
             };
 
-            _ephemeralCommands = ["bacta", "question", "summarize", "ping", "credits", "leaderboard"];
+            _ephemeralCommands = ["question", "summarize", "ping", "credits", "leaderboard"];
         }
 
         public async Task CommandExecutorAsync(SocketSlashCommand command)

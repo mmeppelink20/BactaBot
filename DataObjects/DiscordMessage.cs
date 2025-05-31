@@ -26,6 +26,21 @@
         public string? ChannelName { get; set; }
         public string? ChannelType { get; set; }
         public ulong? GuildId { get; set; }
+
+        public string ToStringForCompletion()
+        {
+            var repliedToMessageId = RepliedToMessageId != null ? $"[REPLIED TO MESSAGE ID: {RepliedToMessageId}] " : string.Empty;
+
+            return $"[USERNAME/NICKNAME: {UserName} / {NickName}] [MESSAGE ID: {MessageId}] [MESSAGE: {CleanContent}] [TIMESTAMP: {MessageDatetime}] {repliedToMessageId}";
+        }
+
+        public string ToStringForDeletedMessage()
+        {
+            var repliedToMessageId = RepliedToMessageId != null ? $"[REPLIED TO MESSAGE ID: {RepliedToMessageId}] " : string.Empty;
+
+            return $"[USERNAME/NICKNAME: {UserName} / {NickName}] [THIS MESSAGE WAS DELETED] [TIMESTAMP: {MessageDatetime}] [MESSAGE WAS DELETED AT: {MessageDeletedDatetime}] {repliedToMessageId}";
+        }
+
     }
 
 }

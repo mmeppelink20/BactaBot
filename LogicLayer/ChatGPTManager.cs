@@ -5,6 +5,7 @@ using LogicLayerInterfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using OpenAI.Chat;
+using System.Diagnostics.Contracts;
 
 namespace LogicLayer
 {
@@ -33,48 +34,41 @@ namespace LogicLayer
             {
                 ChatClient client = new(model: _configuration["BACTA_BOT_MODEL"], apiKey: _configuration["OPEN_AI_API_KEY"]);
 
-
                 var messages = await _messageManager.RetrieveDiscordMessagesByChannelIDAndMinutesAsync(userMessage.Channel.Id, minutes);
 
-                var prompt = $"[SYSTEM] {_configuration["BACTA_BOT_PROMPT"]}\n\n";
+                messages.Reverse();
 
-                foreach(var message in messages)
+                List<ChatMessage> chatMessages = [];
+
+                chatMessages.Add(ChatMessage.CreateSystemMessage($"{_configuration["BACTA_BOT_PROMPT"]} \n\n[CHAT MESSAGE TO RESPOND TO: {messages.Last().ToStringForCompletion()}\n"));
+
+                foreach (var message in messages)
                 {
+                    // Skip the user's message if it matches
+                    if (message.UserName == null && message.MessageId == userMessage.Id)
+                        continue;
 
-                    var role = message.UserName != null && message.UserName.Equals(_configuration["BACTA_BOT_NAME"])
-                        ? "[ASSISTANT]"
-                        : "[USER]";
+                    string content = message.IsDeleted
+                        ? message.ToStringForDeletedMessage()
+                        : message.ToStringForCompletion();
 
-                    if(message.MessageId == userMessage.Id)
+                    if (message.UserName != null)
                     {
-                        role = "[USER - QUESTION]";
-                    }
-
-                    if (message.IsDeleted)
-                    {
-                        prompt += $" {role} USERNAME: {message.UserName} | " +
-                            $"NICKNAME: {message.NickName} | " +
-                            $"[THIS MESSAGE WAS DELETED]: | " +
-                            $"MESSAGE DATETIME: {message.MessageDatetime} | " +
-                            $"MESSAGE ID: {message.MessageId} | " +
-                            $"REPLIED TO MESSAGE ID (nullable): {message.RepliedToMessageId} | " +
-                            $"MESSAGE DELETED DATETIME: {message.MessageDeletedDatetime} \n\n";
+                        chatMessages.Add(ChatMessage.CreateAssistantMessage(content));
                     }
                     else
                     {
-                        prompt +=
-                            $" {role} USERNAME: {message.UserName} | " +
-                            $"NICKNAME: {message.NickName} | " +
-                            $"MESSAGE CONTENT: {message.CleanContent} | " +
-                            $"MESSAGE DATETIME: {message.MessageDatetime} | " +
-                            $"MESSAGE ID: {message.MessageId} | " +
-                            $"REPLIED TO MESSAGE ID (nullable): {message.RepliedToMessageId} \n\n";
+                        chatMessages.Add(ChatMessage.CreateUserMessage(content));
                     }
-
                 }
 
+                // log the entire chatMessages
+                if (Int32.Parse(_configuration["LOG_BACTA_PROMPT"] ?? "0") == 1)
+                {
+                    _logger.LogInformation("Chat Messages: \n\n{ChatMessages}\n\n", string.Join("\n", chatMessages.Select(m => m.Content[0].Text)));
+                }
 
-                ChatCompletion completionResult = await client.CompleteChatAsync(prompt);
+                ChatCompletion completionResult = await client.CompleteChatAsync([.. chatMessages]);
 
                 response = completionResult.Content[0].Text;
             }
@@ -83,7 +77,7 @@ namespace LogicLayer
                 _logger.LogError((int)BactaLogging.LogEvent.ChatGPT, ex, "Failed to retrieve Bacta bot mention response from ChatGPT");
             }
 
-            // if null or empty, return a default message
+            // if null or empty, return a default message  
             return response ?? "Failed to retrieve Bacta bot mention response";
         }
 

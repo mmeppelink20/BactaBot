@@ -11,7 +11,8 @@ namespace DataObjects
         public enum ButtonId
         {
             btnDm,
-            btnShare
+            btnShare,
+            btnRespin
         }
     }
 }

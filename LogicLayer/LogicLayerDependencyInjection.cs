@@ -21,6 +21,7 @@ namespace LogicLayer
             services.AddScoped<IGuildManager, GuildManager>();
             services.AddScoped<IChannelManager, ChannelManager>();
             services.AddScoped<IUserManager, UserManager>();
+            services.AddScoped<IBactaManager, BactaManager>();
 
             // Register dependencies from the DataAccessLayer
             services.AddDataAccessLayer();

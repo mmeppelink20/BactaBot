@@ -5,9 +5,7 @@ namespace LogicLayerInterfaces
     public interface ISlashCommands
     {
         Task HandleBactaCommand(SocketSlashCommand command);
-
         Task HandleQuestionCommand(SocketSlashCommand command);
-
         Task HandleSummarizeCommand(SocketSlashCommand command);
         Task HandlePingCommand(SocketSlashCommand command);
         Task HandleCreditsCommand(SocketSlashCommand command);

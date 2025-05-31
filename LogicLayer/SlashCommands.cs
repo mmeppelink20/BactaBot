@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 
 namespace LogicLayer
 {
-    public class SlashCommands(ILogger<ISlashCommands> logger, IConfiguration configuration, DiscordSocketClient client, CommandService commands, IGuildMessageManager messageManager, IButtons buttons, IChatGPTManager chatGPTManager) : ISlashCommands
+    public class SlashCommands(ILogger<ISlashCommands> logger, IConfiguration configuration, DiscordSocketClient client, CommandService commands, IGuildMessageManager messageManager, IButtons buttons, IChatGPTManager chatGPTManager, IBactaManager bactaManager) : ISlashCommands
     {
 
         private readonly ILogger<ISlashCommands> _logger = logger;
@@ -18,40 +18,17 @@ namespace LogicLayer
         private readonly IGuildMessageManager _messageManager = messageManager;
         private readonly IButtons _buttons = buttons;
         private readonly IChatGPTManager _chatGPTManager = chatGPTManager;
+        private readonly IBactaManager _bactaManager = bactaManager;
 
         public async Task HandleBactaCommand(SocketSlashCommand command)
         {
-            try
-            {
-                Random rand = new();
-                int n = rand.Next(102); // Generates a random number between 0 and 101
+            var builder = new ComponentBuilder();
+            
+            var result = _bactaManager.GenerateBactaResponseAsync(builder);
 
-                // Determine the reply based on the random number
-                var result = n switch
-                {
-                    0 or 1 => "bacta max win",
-                    >= 2 and <= 30 => "bacta",
-                    100 or 101 => "klytobacter",
-                    _ => "no bacta"
-                };
-
-                // log the command name, its invoker, and the reply
-                _logger.LogInformation("Command: {CommandName} - Invoked by: {Invoker} - Result: {Result}", command.Data.Name, command.User.Username, result);
-
-                var builder = new ComponentBuilder();
-
-                _buttons.CreateBtnDM(builder);
-                _buttons.CreateBtnShare(builder);
-
-                // send the response with the buttons
-                await command.FollowupAsync(result, components: builder.Build());
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "An error occurred while handling the Bacta command.");
-                await command.RespondAsync("An error occurred while processing your command.", ephemeral: true);
-            }
+            await command.FollowupAsync(components: builder.Build(), embed: BactaManager.BactaEmbedBuilder(result).Build());
         }
+
 
         public async Task HandleQuestionCommand(SocketSlashCommand command)
         {
@@ -98,7 +75,7 @@ namespace LogicLayer
             var responseTime = DateTimeOffset.UtcNow - command.CreatedAt;
             var response = $"Pong! \n\n({responseTime.Milliseconds} ms)";
 
-            await command.FollowupAsync(response, ephemeral: true, components: ResponseButtonBuilder.Build());
+            await command.FollowupAsync(response, ephemeral: true);
         }
 
 
@@ -110,20 +87,8 @@ namespace LogicLayer
 
         public async Task HandleLeaderboardCommand(SocketSlashCommand command)
         {
-
             await command.FollowupAsync("Leaderboard", ephemeral: true);
         }
 
-        private static ComponentBuilder ResponseButtonBuilder
-        {
-            get
-            {
-                var builder = new ComponentBuilder()
-                    .WithButton("DM", "btnDm", ButtonStyle.Primary)
-                    .WithButton("Share", "btnShare", ButtonStyle.Success);
-
-                return builder;
-            }
-        }
     }
 }

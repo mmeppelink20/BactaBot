@@ -34,12 +34,13 @@ namespace LogicLayer
             _messageManager = messageManager;
             _buttons = buttons;
 
-            // Map button IDs to handlers
+            // Map button IDs to handlers  
             _buttonList = new Dictionary<string, Func<SocketMessageComponent, Task>>
-            {
-                { ButtonId.btnDm.ToString(), _buttons.BtnDm },
-                { ButtonId.btnShare.ToString(), _buttons.BtnShare }
-            };
+               {
+                   { ButtonId.btnDm.ToString(), component => _buttons.BtnDm(component, null) },
+                   { ButtonId.btnShare.ToString(), component => _buttons.BtnShare(component, null) },
+                   { ButtonId.btnRespin.ToString(), component => _buttons.BtnRespin(component) }
+               };
         }
 
         public Task ButtonExecutorAsync(SocketMessageComponent component)

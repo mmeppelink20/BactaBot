@@ -39,13 +39,29 @@ namespace LogicLayer
         {
             try
             {
+                // if the message is not from a guild channel, return
                 if (message.Flags.HasValue && !message.Flags.Value.HasFlag(MessageFlags.Ephemeral) && message.Channel is IGuildChannel guildChannel)
                 {
+                    // add the message to the database
                     await _messageManager.AddDiscordMessageAsync(message);
-                    BactaBotMentioned(message);
-                }
 
-                PrefixCommands(message);
+                    // check if the message is from the bot itself to avoid processing its own messages
+                    if (message.Author.IsBot || message.Author.IsWebhook)
+                    {
+                        return;
+                    }
+
+                    // check if the bot is mentioned in the message
+                    bool botMentioned = message.MentionedUsers.Any(user => user.Id == _client.CurrentUser.Id);
+
+                    if (botMentioned)
+                    {
+                        BactaBotMentioned(message);
+                    }
+
+                    // Check if the message starts with a prefix command
+                    PrefixCommands(message);
+                }
             }
             catch (Exception ex)
             {
@@ -67,7 +83,7 @@ namespace LogicLayer
 
             try
             {
-
+                // attempt to delete the message from the database
                 isDeleted = await _messageManager.DeleteDiscordMessageAsync(message.Id);
 
                 // log that the deletion was successful or not
@@ -161,25 +177,16 @@ namespace LogicLayer
                 return;
             }
 
-            bool botMentioned = userMessage.MentionedUsers.Any(user => user.Id == _client.CurrentUser.Id);
-            bool replyingToBot = false;
-
             if (message.Reference?.MessageId.IsSpecified == true)
             {
                 try
                 {
                     var referencedMessage = await message.Channel.GetMessageAsync(message.Reference.MessageId.Value);
-                    replyingToBot = referencedMessage?.Author.Id == _client.CurrentUser.Id;
                 }
                 catch (Exception ex)
                 {
                     _logger.LogWarning((int)BactaLogging.LogEvent.MessageRelated, ex, "Failed to retrieve referenced message.");
                 }
-            }
-
-            if (!botMentioned && !replyingToBot) 
-            {
-                return;
             }
 
             try
@@ -193,6 +200,7 @@ namespace LogicLayer
             catch (Exception ex)
             {
                 _logger.LogError((int)BactaLogging.LogEvent.ChatGPT, ex, "An error occurred while retrieving the chat bot completion.");
+
                 await MessageDevelopers(message, ex.ToString());
                 await userMessage.ReplyAsync("An error occurred while processing your message. Please try again later.");
             }

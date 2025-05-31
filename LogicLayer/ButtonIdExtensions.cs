@@ -10,6 +10,7 @@ namespace LogicLayer
         {
             ButtonId.btnDm => "DM",
             ButtonId.btnShare => "Share",
+            ButtonId.btnRespin => "Respin",
             _ => "Unknown"
         };
 
@@ -17,6 +18,7 @@ namespace LogicLayer
         {
             ButtonId.btnDm => ButtonStyle.Primary,
             ButtonId.btnShare => ButtonStyle.Success,
+            ButtonId.btnRespin => ButtonStyle.Secondary,
             _ => ButtonStyle.Secondary
         };
     }
