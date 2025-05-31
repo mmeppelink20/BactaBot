@@ -38,11 +38,9 @@ namespace LogicLayer
 
                 var messages = await _messageManager.RetrieveDiscordMessagesByChannelIDAndMinutesAsync(userMessage.Channel.Id, minutes);
 
-                messages.Reverse();
-
                 List<ChatMessage> chatMessages = [];
 
-                chatMessages.Add(ChatMessage.CreateSystemMessage($"{_configuration["BACTA_BOT_PROMPT"]} \n\n[CHAT MESSAGE TO RESPOND TO: {messages.Last().ToStringForCompletion()}\n"));
+                chatMessages.Add(ChatMessage.CreateSystemMessage($"{_configuration["BACTA_BOT_PROMPT"]}"));
 
                 foreach (var message in messages)
                 {
