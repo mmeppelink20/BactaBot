@@ -45,14 +45,14 @@ namespace LogicLayer
                 foreach (var message in messages)
                 {
                     // Skip the user's message if it matches
-                    if (message.UserName == null && message.MessageId == userMessage.Id)
+                    if (message.MessageId == userMessage.Id)
                         continue;
 
                     string content = message.IsDeleted
                         ? message.ToStringForDeletedMessage()
                         : message.ToStringForCompletion();
 
-                    if (message.UserName != null)
+                    if (message.UserName == _configuration["BACTA_BOT_NAME"])
                     {
                         chatMessages.Add(ChatMessage.CreateAssistantMessage(content));
                     }
