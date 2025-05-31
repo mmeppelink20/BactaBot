@@ -16,6 +16,7 @@ namespace LogicLayer
         private readonly DiscordSocketClient _client;
         private readonly CommandService _commands;
         private readonly IGuildMessageManager _messageManager;
+        //private readonly ChatTool _discordMessageTool;
 
         public ChatGPTManager(ILogger<IChatGPTManager> logger, IConfiguration configuration, DiscordSocketClient client, CommandService commands, IGuildMessageManager messageManager)
         {
@@ -24,6 +25,7 @@ namespace LogicLayer
             _client = client;
             _commands = commands;
             _messageManager = messageManager;
+            //_discordMessageTool = CreateDiscordMessageTool();
         }
 
         public async Task<string> RetrieveChatBotCompletionFromChatGPTAsync(SocketMessage userMessage, int minutes)
@@ -80,6 +82,7 @@ namespace LogicLayer
             // if null or empty, return a default message  
             return response ?? "Failed to retrieve Bacta bot mention response";
         }
+
 
         public async Task<string> RetrieveConversationSummaryFromChatGPTAsync(List<SocketMessage> messages)
         {
@@ -143,6 +146,34 @@ namespace LogicLayer
             // if null or empty, return a default message
             return response ?? "Failed to retrieve conversation summary";
         }
+
+        private static ChatTool CreateDiscordMessageTool()
+        {
+            return ChatTool.CreateFunctionTool(
+                functionName: "GetDiscordMessages",
+                functionDescription: "Contextual Discord messages used to inform Bacta Bot's response",
+                functionParameters: BinaryData.FromString("""
+                {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "userName": { "type": "string" },
+                            "nickName": { "type": "string" },
+                            "messageId": { "type": "string" },
+                            "content": { "type": "string" },
+                            "timestamp": { "type": "string", "format": "date-time" },
+                            "isDeleted": { "type": "boolean" },
+                            "repliedToMessageId": { "type": "string" }
+                        },
+                        "required": ["userName", "content", "timestamp"]
+                    }
+                }
+                """)
+            );
+
+        }
+
 
     }
 }
