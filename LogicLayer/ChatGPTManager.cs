@@ -40,32 +40,34 @@ namespace LogicLayer
 
                 List<ChatMessage> chatMessages = [];
 
+                messages.Reverse();
+
                 chatMessages.Add(ChatMessage.CreateSystemMessage($"{_configuration["BACTA_BOT_PROMPT"]}"));
 
                 foreach (var message in messages)
                 {
-                    // Skip the user's message if it matches
-                    if (message.MessageId == userMessage.Id)
-                        continue;
-
-                    string content = message.IsDeleted
+                    string cleanContent = message.CleanContent ?? string.Empty;
+                    string metaData = message.IsDeleted
                         ? message.ToStringForDeletedMessage()
                         : message.ToStringForCompletion();
 
+
                     if (message.UserName == _configuration["BACTA_BOT_NAME"])
                     {
-                        chatMessages.Add(ChatMessage.CreateAssistantMessage(content));
+                        chatMessages.Add(ChatMessage.CreateSystemMessage(metaData));
+                        chatMessages.Add(ChatMessage.CreateAssistantMessage(cleanContent));
                     }
                     else
                     {
-                        chatMessages.Add(ChatMessage.CreateUserMessage(content));
+                        chatMessages.Add(ChatMessage.CreateSystemMessage(metaData));
+                        chatMessages.Add(ChatMessage.CreateUserMessage(cleanContent));
                     }
                 }
 
                 // log the entire chatMessages
                 if (Int32.Parse(_configuration["LOG_BACTA_PROMPT"] ?? "0") == 1)
                 {
-                    _logger.LogInformation("Chat Messages: \n\n{ChatMessages}\n\n", string.Join("\n", chatMessages.Select(m => m.Content[0].Text)));
+                    _logger.LogInformation("Chat Messages: \n\n{ChatMessages}\n\n", string.Join("\n\n", chatMessages.Select(m => m.Content[0].Text)));
                 }
 
                 ChatCompletion completionResult = await client.CompleteChatAsync([.. chatMessages]);

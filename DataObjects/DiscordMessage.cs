@@ -29,17 +29,36 @@
 
         public string ToStringForCompletion()
         {
-            var repliedToMessageId = RepliedToMessageId != null ? $"[REPLIED TO MESSAGE ID: {RepliedToMessageId}] " : string.Empty;
+            var metadata = $"USERNAME: {UserName}, " +
+                           $"NICKNAME: {NickName}, " +
+                           $"MESSAGE ID: {MessageId}, " +
+                           $"TIMESTAMP: {MessageDatetime}";
 
-            return $"[USERNAME/NICKNAME: {UserName} / {NickName}] [MESSAGE ID: {MessageId}] [MESSAGE: {CleanContent}] [TIMESTAMP: {MessageDatetime}] {repliedToMessageId}";
+            if (RepliedToMessageId.HasValue)
+            {
+                metadata += $", REPLIED TO MESSAGE ID: {RepliedToMessageId.Value}";
+            }
+
+            return $"[METADATA: {metadata}]\n]";
         }
 
         public string ToStringForDeletedMessage()
         {
-            var repliedToMessageId = RepliedToMessageId != null ? $"[REPLIED TO MESSAGE ID: {RepliedToMessageId}] " : string.Empty;
+            var metadata = $"USERNAME: {UserName}, " +
+                           $"NICKNAME: {NickName}, " +
+                           $"MESSAGE ID: {MessageId}, " +
+                           $"TIMESTAMP: {MessageDatetime}, " +
+                           $"MESSAGE WAS DELETED AT: {MessageDeletedDatetime}";
 
-            return $"[USERNAME/NICKNAME: {UserName} / {NickName}] [THIS MESSAGE WAS DELETED] [TIMESTAMP: {MessageDatetime}] [MESSAGE WAS DELETED AT: {MessageDeletedDatetime}] {repliedToMessageId}";
+            if (RepliedToMessageId.HasValue)
+            {
+                metadata += $", REPLIED TO MESSAGE ID: {RepliedToMessageId.Value}";
+            }
+
+            return $"[METADATA: {metadata}]\n[THIS MESSAGE WAS DELETED]";
         }
+
+
 
     }
 
