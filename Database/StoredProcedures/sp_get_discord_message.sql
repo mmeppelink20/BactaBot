@@ -58,7 +58,7 @@ BEGIN
     INNER JOIN Users u ON dm.user_id = u.user_id
     INNER JOIN Channels c ON dm.channel_id = c.channel_id
     LEFT JOIN GuildUsers gu ON gu.user_id = dm.user_id AND gu.guild_id = c.guild_id
-    WHERE dm.message_datetime >= DATEADD(MINUTE, -@minutes_back, GETDATE())
+    WHERE dm.message_datetime >= DATEADD(MINUTE, -@minutes_back, GETUTCDATE())
       AND (@channel_id IS NULL OR dm.channel_id = @channel_id)
     ORDER BY dm.message_datetime DESC;
 END;
