@@ -46,21 +46,31 @@ namespace LogicLayer
 
                 foreach (var message in messages)
                 {
-                    string cleanContent = message.CleanContent ?? string.Empty;
+                    string messageContent = string.Empty;
+
+                    // check to see if _configuration's USE_CLEAN_CONTENT key is set to true, and if it is, use the clean content for the message content
+                    if ((_configuration["USE_CLEAN_CONTENT"] ?? "0") == "1")
+                    {
+                        messageContent = message.CleanContent ?? string.Empty;
+                    }
+                    else
+                    {
+                        messageContent = message.Content ?? string.Empty;
+                    }
+
                     string metaData = message.IsDeleted
                         ? message.ToStringForDeletedMessage()
                         : message.ToStringForCompletion();
 
-
                     if (message.UserName == _configuration["BACTA_BOT_NAME"])
                     {
                         chatMessages.Add(ChatMessage.CreateSystemMessage(metaData));
-                        chatMessages.Add(ChatMessage.CreateAssistantMessage(cleanContent));
+                        chatMessages.Add(ChatMessage.CreateAssistantMessage(messageContent));
                     }
                     else
                     {
                         chatMessages.Add(ChatMessage.CreateSystemMessage(metaData));
-                        chatMessages.Add(ChatMessage.CreateUserMessage(cleanContent));
+                        chatMessages.Add(ChatMessage.CreateUserMessage(messageContent));
                     }
                 }
 
