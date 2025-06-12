@@ -121,7 +121,7 @@ namespace DataAccessLayer
                         ("@joined_at", SqlDbType.DateTime, message.MessageDatetime),
                         ("@is_inactive", SqlDbType.Bit, false),
                         ("@is_bot", SqlDbType.Bit, false),
-                        ("@avatar_url", SqlDbType.NVarChar, message.AttachmentUrl ?? (object)DBNull.Value),
+                        ("@avatar_url", SqlDbType.NVarChar, message.AvatarUrl ?? (object)DBNull.Value),
                         ("@content", SqlDbType.NVarChar, message.Content ?? (object)DBNull.Value),
                         ("@clean_content", SqlDbType.NVarChar, message.CleanContent ?? (object)DBNull.Value),
                         ("@message_datetime", SqlDbType.DateTime, message.MessageDatetime),

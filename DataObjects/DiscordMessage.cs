@@ -26,6 +26,7 @@
         public string? ChannelName { get; set; }
         public string? ChannelType { get; set; }
         public ulong? GuildId { get; set; }
+        public string? AvatarUrl { get; set; }
 
         public string ToStringForCompletion()
         {

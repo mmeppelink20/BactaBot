@@ -46,15 +46,13 @@ namespace LogicLayer
                     await _messageManager.AddDiscordMessageAsync(message);
 
                     // check if the message is from the bot itself to avoid processing its own messages
-                    if (message.Author.IsBot || message.Author.IsWebhook)
+                    if (message.Author.IsBot /*|| message.Author.IsWebhook*/)
                     {
                         return;
                     }
 
                     // check if the bot is mentioned in the message
-                    bool botMentioned = message.MentionedUsers.Any(user => user.Id == _client.CurrentUser.Id);
-
-                    if (botMentioned)
+                    if (message.MentionedUsers.Any(user => user.Id == _client.CurrentUser.Id))
                     {
                         BactaBotMentioned(message);
                     }

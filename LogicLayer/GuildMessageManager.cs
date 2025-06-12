@@ -41,7 +41,8 @@ namespace LogicLayer
                         RepliedToMessageId = (ulong?)(message.Reference?.MessageId),
                         ChannelName = guildChannel.Name,
                         ChannelType = guildChannel.ChannelType.ToString(),
-                        GuildId = guildChannel.GuildId
+                        GuildId = guildChannel.GuildId,
+                        AvatarUrl = (message.Author as SocketGuildUser)?.GetAvatarUrl() ?? message.Author.GetDefaultAvatarUrl(),
                     };
 
                     await _discordMessageAccessor.InsertDiscordMessage(discordMessage);
