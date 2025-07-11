@@ -42,10 +42,9 @@ namespace LogicLayer
                 // if the message is not from a guild channel, return
                 if (message.Flags.HasValue && !message.Flags.Value.HasFlag(MessageFlags.Ephemeral) && message.Channel is IGuildChannel guildChannel)
                 {
-                    // add the message to the database
+
                     await _messageManager.AddDiscordMessageAsync(message);
 
-                    // check if the message is from the bot itself to avoid processing its own messages
                     if (message.Author.IsBot /*|| message.Author.IsWebhook*/)
                     {
                         return;
@@ -57,7 +56,6 @@ namespace LogicLayer
                         BactaBotMentioned(message);
                     }
 
-                    // Check if the message starts with a prefix command
                     PrefixCommands(message);
                 }
             }
@@ -71,7 +69,7 @@ namespace LogicLayer
 
         public async Task MessageDeleted(Cacheable<IMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel)
         {
-            // if the message is not from a guild channel, return
+
             if (channel.Value is not IGuildChannel guildChannel)
             {
                 return;
@@ -81,10 +79,8 @@ namespace LogicLayer
 
             try
             {
-                // attempt to delete the message from the database
                 isDeleted = await _messageManager.DeleteDiscordMessageAsync(message.Id);
 
-                // log that the deletion was successful or not
                 if (isDeleted)
                 {
                     _logger.LogTrace((int)BactaLogging.LogEvent.MessageRelated, "Message deleted from database: {message}", message.Id);
@@ -193,7 +189,9 @@ namespace LogicLayer
 
                 var response = await _chatGPTManager.RetrieveChatBotCompletionFromChatGPTAsync(message, int.Parse(_configuration["MINUTES_FOR_CHAT"] ?? "60"));
 
-                await userMessage.ReplyAsync(response);
+                var allowedMentions = _configuration["MENTION_USER_ON_REPLY"]?.ToLower() == "0" ? AllowedMentions.None : null;
+
+                await userMessage.ReplyAsync(response, allowedMentions: allowedMentions);
             }
             catch (Exception ex)
             {
