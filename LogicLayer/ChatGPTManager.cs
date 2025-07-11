@@ -16,6 +16,7 @@ namespace LogicLayer
         private readonly DiscordSocketClient _client;
         private readonly CommandService _commands;
         private readonly IGuildMessageManager _messageManager;
+        
         //private readonly ChatTool _discordMessageTool;
 
         public ChatGPTManager(ILogger<IChatGPTManager> logger, IConfiguration configuration, DiscordSocketClient client, CommandService commands, IGuildMessageManager messageManager)
@@ -58,9 +59,7 @@ namespace LogicLayer
                         messageContent = message.Content ?? string.Empty;
                     }
 
-                    string metaData = message.IsDeleted
-                        ? message.ToStringForDeletedMessage()
-                        : message.ToStringForCompletion();
+                    string metaData = message.IsDeleted ? message.ToStringForDeletedMessage() : message.ToStringForCompletion();
 
                     if (message.UserName == _configuration["BACTA_BOT_NAME"])
                     {
