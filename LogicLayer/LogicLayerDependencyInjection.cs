@@ -2,6 +2,7 @@
 using DataObjects;
 using LogicLayerInterfaces;
 using Microsoft.Extensions.DependencyInjection;
+using Discord.WebSocket;
 
 namespace LogicLayer
 {
@@ -10,7 +11,8 @@ namespace LogicLayer
         public static IServiceCollection AddLogicLayer(this IServiceCollection services)
         {
             services.AddScoped<IChatGPTManager, ChatGPTManager>();
-            services.AddScoped<IGuildMessageManager, GuildMessageManager>();
+            services.AddSingleton<DiscordSocketClient>();
+            services.AddScoped<IGuildMessageManager, GuildMessageManager>(); // Match client lifetime
             services.AddScoped<IEventManager, EventManager>();
             services.AddScoped<ISlashCommandRegistrar, SlashCommandRegistrar>();
             services.AddScoped<ISlashCommandManager, SlashCommandManager>();

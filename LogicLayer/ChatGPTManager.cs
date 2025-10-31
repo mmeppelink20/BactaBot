@@ -35,7 +35,7 @@ namespace LogicLayer
 
             try
             {
-                ChatClient client = new(model: _configuration["BACTA_BOT_MODEL"], apiKey: _configuration["OPEN_AI_API_KEY"]);
+                ChatClient client = new(model: _configuration[ConfigurationKeys.BactaBotModel], apiKey: _configuration[ConfigurationKeys.OpenAiApiKey]);
 
                 var messages = await _messageManager.RetrieveDiscordMessagesByChannelIDAndMinutesAsync(userMessage.Channel.Id, minutes);
 
@@ -43,14 +43,14 @@ namespace LogicLayer
 
                 messages.Reverse();
 
-                chatMessages.Add(ChatMessage.CreateSystemMessage($"{_configuration["BACTA_BOT_PROMPT"]}"));
+                chatMessages.Add(ChatMessage.CreateSystemMessage($"{_configuration[ConfigurationKeys.BactaBotPrompt]}"));
 
                 foreach (var message in messages)
                 {
                     string messageContent = string.Empty;
 
                     // check to see if _configuration's USE_CLEAN_CONTENT key is set to true, and if it is, use the clean content for the message content
-                    if ((_configuration["USE_CLEAN_CONTENT"] ?? "0") == "1")
+                    if ((_configuration[ConfigurationKeys.UseCleanContent] ?? "0") == "1")
                     {
                         messageContent = message.CleanContent ?? string.Empty;
                     }
@@ -61,7 +61,7 @@ namespace LogicLayer
 
                     string metaData = message.IsDeleted ? message.ToStringForDeletedMessage() : message.ToStringForCompletion();
 
-                    if (message.UserName == _configuration["BACTA_BOT_NAME"])
+                    if (message.UserName == _configuration[ConfigurationKeys.BactaBotName])
                     {
                         chatMessages.Add(ChatMessage.CreateSystemMessage(metaData));
                         chatMessages.Add(ChatMessage.CreateAssistantMessage(messageContent));
@@ -74,7 +74,7 @@ namespace LogicLayer
                 }
 
                 // log the entire chatMessages
-                if (Int32.Parse(_configuration["LOG_BACTA_PROMPT"] ?? "0") == 1)
+                if (Int32.Parse(_configuration[ConfigurationKeys.LogBactaPrompt] ?? "0") == 1)
                 {
                     _logger.LogInformation("Chat Messages: \n\n{ChatMessages}\n\n", string.Join("\n\n", chatMessages.Select(m => m.Content[0].Text)));
                 }
@@ -99,9 +99,9 @@ namespace LogicLayer
 
             try
             {
-                ChatClient client = new(model: _configuration["SUMMARY_MODEL"], apiKey: _configuration["OPEN_AI_API_KEY"]);
+                ChatClient client = new(model: _configuration[ConfigurationKeys.SummaryModel], apiKey: _configuration[ConfigurationKeys.OpenAiApiKey]);
 
-                ChatCompletion completionResult = await client.CompleteChatAsync(_configuration["SUMMARY_PROMPT"]);
+                ChatCompletion completionResult = await client.CompleteChatAsync(_configuration[ConfigurationKeys.SummaryPrompt]);
 
                 response = completionResult.Content[0].Text;
             }
@@ -120,15 +120,15 @@ namespace LogicLayer
 
             try
             {
-                ChatClient client = new(model: _configuration["SUMMARY_MODEL"], apiKey: _configuration["OPEN_AI_API_KEY"]);
+                ChatClient client = new(model: _configuration[ConfigurationKeys.SummaryModel], apiKey: _configuration[ConfigurationKeys.OpenAiApiKey]);
 
-                var prompt = $"{_configuration["QUESTION_PROMPT"]}\n\n";
+                var prompt = $"{_configuration[ConfigurationKeys.QuestionPrompt]}\n\n";
 
                 prompt += $"{question}\n\n";
 
                 foreach (var message in messages)
                 {
-                    var role = message.UserName != null && message.UserName.Equals(_configuration["BACTA_BOT_NAME"])
+                    var role = message.UserName != null && message.UserName.Equals(_configuration[ConfigurationKeys.BactaBotName])
                         ? "[ASSISTANT]"
                         : "[USER]";
                     prompt +=

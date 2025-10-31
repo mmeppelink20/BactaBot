@@ -27,10 +27,10 @@ namespace LogicLayer
         public async Task StartAsync(ServiceProvider services)
         {
 #if DEBUG
-            string discordToken = _configuration["profiles:BactaBot:environmentVariables:DISCORD_TEST_TOKEN"] ?? throw new Exception("Missing Discord token");
+            string discordToken = _configuration[ConfigurationKeys.DiscordTestToken] ?? throw new Exception("Missing Discord token");
 
 #else
-            string discordToken = _configuration["profiles:BactaBot:environmentVariables:DISCORD_TOKEN"] ?? throw new Exception("Missing Discord token");
+            string discordToken = _configuration[ConfigurationKeys.DiscordToken] ?? throw new Exception("Missing Discord token");
 #endif
 
             _bactaConfigurationManager.RegisterConfiguration();
@@ -45,7 +45,7 @@ namespace LogicLayer
 
             _bactaConfigurationManager.RegisterConfiguration();
 
-            int retryCount = int.Parse(_configuration["AUTHENTICATION_RETRY_COUNT"] ?? "15");
+            int retryCount = int.Parse(_configuration[ConfigurationKeys.AuthenticationRetryCount] ?? "15");
 
             // Wait for the client to connect
             for (int i = 1; i <= retryCount; i++)

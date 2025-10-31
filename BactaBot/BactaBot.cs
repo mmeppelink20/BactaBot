@@ -40,7 +40,7 @@ namespace BactaBot
                     options.ClearProviders();
                     options.AddNLog();
                     options.AddConsole();
-                    options.SetMinimumLevel(configuration.GetSection("Logging").GetValue<Microsoft.Extensions.Logging.LogLevel>("Default"));
+                    options.SetMinimumLevel(configuration.GetSection("Logging").GetValue<Microsoft.Extensions.Logging.LogLevel>(ConfigurationKeys.LoggingDefault));
                 })
                 .AddSingleton<IConfiguration>(configuration)
                 .AddSingleton<DiscordSocketClient>(provider =>

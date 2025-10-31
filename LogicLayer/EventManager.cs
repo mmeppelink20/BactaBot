@@ -149,10 +149,10 @@ namespace LogicLayer
 
         private HashSet<ulong> ParseDeveloperIDList()
         {
-            var developerUserIdList = _configuration["DEVELOPER_USERID_LIST"];
+            var developerUserIdList = _configuration[ConfigurationKeys.DeveloperUserIdList];
             if (string.IsNullOrEmpty(developerUserIdList))
             {
-                _logger.LogWarning("DEVELOPER_USERID_LIST is not configured or is empty.");
+                _logger.LogWarning($"{ConfigurationKeys.DeveloperUserIdList} is not configured or is empty.");
                 return [];
             }
             return new HashSet<ulong>(developerUserIdList.Split(',').Select(ulong.Parse));
@@ -193,10 +193,10 @@ namespace LogicLayer
                     {
                         var response = await _chatGPTManager.RetrieveChatBotCompletionFromChatGPTAsync(
                             message, 
-                            int.Parse(_configuration["MINUTES_FOR_CHAT"] ?? "60")
+                            int.Parse(_configuration[ConfigurationKeys.MinutesForChat] ?? "60")
                         );
 
-                        var allowedMentions = _configuration["MENTION_USER_ON_REPLY"]?.ToLower() == "0" 
+                        var allowedMentions = _configuration[ConfigurationKeys.MentionUserOnReply]?.ToLower() == "0" 
                             ? AllowedMentions.None 
                             : null;
 

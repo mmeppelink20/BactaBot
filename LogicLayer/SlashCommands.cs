@@ -5,6 +5,7 @@ using Discord.WebSocket;
 using LogicLayerInterfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using DataObjects;
 
 namespace LogicLayer
 {
@@ -36,7 +37,7 @@ namespace LogicLayer
 
             var questionValue = questionOption?.Value?.ToString() ?? "";
 
-            var messages = await _messageManager.RetrieveDiscordMessagesByChannelIDAndMinutesAsync(command.Channel.Id, int.Parse(_configuration["MINUTES_FOR_CHAT"] ?? "60"));
+            var messages = await _messageManager.RetrieveDiscordMessagesByChannelIDAndMinutesAsync(command.Channel.Id, int.Parse(_configuration[ConfigurationKeys.MinutesForChat] ?? "60"));
 
             var result = await _chatGPTManager.RetrieveQuestionAboutConversationFromChatGPTAsync(questionValue, messages);
 
