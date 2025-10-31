@@ -9,7 +9,11 @@ namespace DataAccessLayer
         private readonly IConfiguration _configuration = configuration;
         public SqlConnection GetConnection()
         {
-            var connectionString = _configuration["profiles:BactaBot:environmentVariables:DATABASE_CONNECTION_STRING"];
+#if DEBUG
+            var connectionString = _configuration["profiles:BactaBot:environmentVariables:STAGE_DATABASE_CONNECTION_STRING"];
+#else
+            var connectionString = _configuration["profiles:BactaBot:environmentVariables:PROD_DATABASE_CONNECTION_STRING"];
+#endif
             var conn = new SqlConnection(connectionString);
 
             return conn;

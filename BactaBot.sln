@@ -20,6 +20,86 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.gitignore = .gitignore
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Database", "Database", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+	ProjectSection(SolutionItems) = preProject
+		Database\.env = Database\.env
+		Database\CreateDB.bat = Database\CreateDB.bat
+		Database\CreateDB.sql = Database\CreateDB.sql
+		Database\DB.log = Database\DB.log
+		Database\New Text Document.txt = Database\New Text Document.txt
+		Database\readme.md = Database\readme.md
+		Database\UpgradeDB.bat = Database\UpgradeDB.bat
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SampleData", "SampleData", "{57C23EF6-D184-4204-B6A4-800CADC7A8C1}"
+	ProjectSection(SolutionItems) = preProject
+		Database\SampleData\SampleData.sql = Database\SampleData\SampleData.sql
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "StoredProcedures", "StoredProcedures", "{2046C6D7-73D0-467A-AFFC-4A65D125DB50}"
+	ProjectSection(SolutionItems) = preProject
+		Database\StoredProcedures\sp_bulk_insert_discord_messages.sql = Database\StoredProcedures\sp_bulk_insert_discord_messages.sql
+		Database\StoredProcedures\sp_deactivate_channels.sql = Database\StoredProcedures\sp_deactivate_channels.sql
+		Database\StoredProcedures\sp_deactivate_guilds.sql = Database\StoredProcedures\sp_deactivate_guilds.sql
+		Database\StoredProcedures\sp_deactivate_users.sql = Database\StoredProcedures\sp_deactivate_users.sql
+		Database\StoredProcedures\sp_delete_channel.sql = Database\StoredProcedures\sp_delete_channel.sql
+		Database\StoredProcedures\sp_delete_discord_message.sql = Database\StoredProcedures\sp_delete_discord_message.sql
+		Database\StoredProcedures\sp_delete_guild.sql = Database\StoredProcedures\sp_delete_guild.sql
+		Database\StoredProcedures\sp_get_all_channels.sql = Database\StoredProcedures\sp_get_all_channels.sql
+		Database\StoredProcedures\sp_get_all_configuration_values.sql = Database\StoredProcedures\sp_get_all_configuration_values.sql
+		Database\StoredProcedures\sp_get_all_guilds.sql = Database\StoredProcedures\sp_get_all_guilds.sql
+		Database\StoredProcedures\sp_get_channel.sql = Database\StoredProcedures\sp_get_channel.sql
+		Database\StoredProcedures\sp_get_configuration_by_key.sql = Database\StoredProcedures\sp_get_configuration_by_key.sql
+		Database\StoredProcedures\sp_get_discord_message.sql = Database\StoredProcedures\sp_get_discord_message.sql
+		Database\StoredProcedures\sp_get_guild.sql = Database\StoredProcedures\sp_get_guild.sql
+		Database\StoredProcedures\sp_get_message_count_by_user.sql = Database\StoredProcedures\sp_get_message_count_by_user.sql
+		Database\StoredProcedures\sp_get_recent_discord_messages.sql = Database\StoredProcedures\sp_get_recent_discord_messages.sql
+		Database\StoredProcedures\sp_insert_channel.sql = Database\StoredProcedures\sp_insert_channel.sql
+		Database\StoredProcedures\sp_insert_discord_message.sql = Database\StoredProcedures\sp_insert_discord_message.sql
+		Database\StoredProcedures\sp_insert_guild.sql = Database\StoredProcedures\sp_insert_guild.sql
+		Database\StoredProcedures\sp_insert_guild_users.sql = Database\StoredProcedures\sp_insert_guild_users.sql
+		Database\StoredProcedures\sp_insert_multiple_channels.sql = Database\StoredProcedures\sp_insert_multiple_channels.sql
+		Database\StoredProcedures\sp_insert_multiple_guilds.sql = Database\StoredProcedures\sp_insert_multiple_guilds.sql
+		Database\StoredProcedures\sp_insert_multiple_users.sql = Database\StoredProcedures\sp_insert_multiple_users.sql
+		Database\StoredProcedures\sp_update_channel.sql = Database\StoredProcedures\sp_update_channel.sql
+		Database\StoredProcedures\sp_update_discord_message.sql = Database\StoredProcedures\sp_update_discord_message.sql
+		Database\StoredProcedures\sp_update_guild.sql = Database\StoredProcedures\sp_update_guild.sql
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "StoredProcedureUpgradeScripts", "StoredProcedureUpgradeScripts", "{33639173-02E8-4472-9D97-349CC2012855}"
+	ProjectSection(SolutionItems) = preProject
+		Database\StoredProcedures\StoredProcedureUpgradeScripts\sp_delete_discord_message.sql = Database\StoredProcedures\StoredProcedureUpgradeScripts\sp_delete_discord_message.sql
+		Database\StoredProcedures\StoredProcedureUpgradeScripts\sp_get_recent_discord_messages.sql = Database\StoredProcedures\StoredProcedureUpgradeScripts\sp_get_recent_discord_messages.sql
+		Database\StoredProcedures\StoredProcedureUpgradeScripts\sp_insert_discord_message.sql = Database\StoredProcedures\StoredProcedureUpgradeScripts\sp_insert_discord_message.sql
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tables", "Tables", "{515C2E95-433A-440A-9399-43B805B161A5}"
+	ProjectSection(SolutionItems) = preProject
+		Database\Tables\Channels.sql = Database\Tables\Channels.sql
+		Database\Tables\ChannelTypes.sql = Database\Tables\ChannelTypes.sql
+		Database\Tables\Configuration.sql = Database\Tables\Configuration.sql
+		Database\Tables\DiscordMessages.sql = Database\Tables\DiscordMessages.sql
+		Database\Tables\Guilds.sql = Database\Tables\Guilds.sql
+		Database\Tables\GuildUsers.sql = Database\Tables\GuildUsers.sql
+		Database\Tables\UserConfiguration.sql = Database\Tables\UserConfiguration.sql
+		Database\Tables\Users.sql = Database\Tables\Users.sql
+		Database\Tables\UserStats.sql = Database\Tables\UserStats.sql
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TableUpgradeScripts", "TableUpgradeScripts", "{8E449768-4CB7-436D-A219-C5059ED0BF7A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Types", "Types", "{EA2DF4BB-00FA-4C23-ABAD-6626709FFD1B}"
+	ProjectSection(SolutionItems) = preProject
+		Database\Types\ChannelIDs.sql = Database\Types\ChannelIDs.sql
+		Database\Types\ChannelsTableType.sql = Database\Types\ChannelsTableType.sql
+		Database\Types\DiscordMessageType.sql = Database\Types\DiscordMessageType.sql
+		Database\Types\GuildsTable.sql = Database\Types\GuildsTable.sql
+		Database\Types\GuildsTableType.sql = Database\Types\GuildsTableType.sql
+		Database\Types\GuildUsersTableType.sql = Database\Types\GuildUsersTableType.sql
+		Database\Types\UsersIDs.sql = Database\Types\UsersIDs.sql
+		Database\Types\UsersTableType.sql = Database\Types\UsersTableType.sql
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -53,6 +133,14 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{57C23EF6-D184-4204-B6A4-800CADC7A8C1} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{2046C6D7-73D0-467A-AFFC-4A65D125DB50} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{33639173-02E8-4472-9D97-349CC2012855} = {2046C6D7-73D0-467A-AFFC-4A65D125DB50}
+		{515C2E95-433A-440A-9399-43B805B161A5} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{8E449768-4CB7-436D-A219-C5059ED0BF7A} = {515C2E95-433A-440A-9399-43B805B161A5}
+		{EA2DF4BB-00FA-4C23-ABAD-6626709FFD1B} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E0387AF1-C3C9-4FD4-991A-D66953D63CCB}

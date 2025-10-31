@@ -29,3 +29,4 @@ BEGIN
       AND (@channel_id IS NULL OR dm.channel_id = @channel_id)
     ORDER BY dm.message_datetime DESC;
 END;
+GO

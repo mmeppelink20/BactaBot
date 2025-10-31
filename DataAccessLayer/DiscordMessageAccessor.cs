@@ -144,6 +144,74 @@ namespace DataAccessLayer
                 }
             }
         }
+        public async Task InsertDiscordMessages(IEnumerable<DiscordMessageVM> messages)
+        {
+            const string cmdText = "sp_bulk_insert_discord_messages";
+
+            var dataTable = new DataTable();
+            dataTable.Columns.Add("message_id", typeof(long));
+            dataTable.Columns.Add("channel_id", typeof(long));
+            dataTable.Columns.Add("user_id", typeof(long));
+            dataTable.Columns.Add("user_name", typeof(string));
+            dataTable.Columns.Add("nickname", typeof(string));
+            dataTable.Columns.Add("joined_at", typeof(DateTime));
+            dataTable.Columns.Add("is_inactive", typeof(bool));
+            dataTable.Columns.Add("is_bot", typeof(bool));
+            dataTable.Columns.Add("avatar_url", typeof(string));
+            dataTable.Columns.Add("content", typeof(string));
+            dataTable.Columns.Add("clean_content", typeof(string));
+            dataTable.Columns.Add("message_datetime", typeof(DateTime));
+            dataTable.Columns.Add("isEdited", typeof(bool));
+            dataTable.Columns.Add("message_edited_datetime", typeof(DateTime));
+            dataTable.Columns.Add("attachment_url", typeof(string));
+            dataTable.Columns.Add("message_link", typeof(string));
+            dataTable.Columns.Add("replied_to_message_id", typeof(long));
+            dataTable.Columns.Add("channel_name", typeof(string));
+            dataTable.Columns.Add("channel_type", typeof(string));
+            dataTable.Columns.Add("guild_id", typeof(long));
+
+            foreach (var m in messages)
+            {
+                dataTable.Rows.Add(
+                    (long)m.MessageId,
+                    (long)m.ChannelId,
+                    (long)m.UserId,
+                    m.UserName ?? (object)DBNull.Value,
+                    m.NickName ?? (object)DBNull.Value,
+                    m.JoinedDate ?? (object)DBNull.Value,
+                    false, // is_inactive (set as needed)  
+                    false, // is_bot (set as needed)  
+                    m.AvatarUrl ?? (object)DBNull.Value,
+                    m.Content ?? (object)DBNull.Value,
+                    m.CleanContent ?? (object)DBNull.Value,
+                    m.MessageDatetime,
+                    m.IsEdited,
+                    m.MessageEditedDatetime ?? (object)DBNull.Value,
+                    m.AttachmentUrl ?? (object)DBNull.Value,
+                    m.MessageLink ?? (object)DBNull.Value,
+                    m.RepliedToMessageId ?? (object)DBNull.Value,
+                    m.ChannelName ?? (object)DBNull.Value,
+                    m.ChannelType ?? (object)DBNull.Value,
+                    m.GuildId ?? (object)DBNull.Value
+                );
+            }
+
+            using (var conn = dbConnection.GetConnection())
+            {
+                await conn.OpenAsync().ConfigureAwait(false);
+
+                using (var cmd = new SqlCommand(cmdText, conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+
+                    var param = cmd.Parameters.AddWithValue("@messages", dataTable);
+                    param.SqlDbType = SqlDbType.Structured;
+                    param.TypeName = "dbo.DiscordMessageType";
+
+                    await cmd.ExecuteNonQueryAsync();
+                }
+            }
+        }
 
         public Task UpdateDiscordMessage(DiscordMessage message)
         {
