@@ -1,4 +1,3 @@
--- Update Procedure (Channels)
 CREATE PROCEDURE sp_update_channel
     @channel_id BIGINT,
     @old_channel_name NVARCHAR(255),

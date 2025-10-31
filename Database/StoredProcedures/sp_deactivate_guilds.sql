@@ -1,10 +1,3 @@
--- Create a table type for bulk inserting guilds
-CREATE TYPE GuildsTable AS TABLE
-(
-    guild_id BIGINT
-);
-GO
-
 CREATE PROCEDURE sp_deactivate_guilds
     @Guilds GuildsTable READONLY
 AS

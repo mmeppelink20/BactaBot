@@ -51,6 +51,22 @@ call :CheckErrors "UserStats.sql"
 echo Executing GuildUsers.sql
 %SqlCmdPath% -S %ServerName% -d %DatabaseName% -U %SQLUSERNAME% -P %SQLPASSWORD% -i ".\Tables\GuildUsers.sql" >> DB.log 2>&1
 call :CheckErrors "GuildUsers.sql"
+%SqlCmdPath% -S %ServerName% -d %DatabaseName% -U %SQLUSERNAME% -P %SQLPASSWORD% -i ".\Tables\EditedMessages.sql" >> DB.log 2>&1
+call :CheckErrors "EditedMessages.sql"
+
+echo.
+
+echo  **************************
+echo     Creating %DatabaseName% Types.
+echo  **************************
+
+REM Execute all type definitions BEFORE stored procedures
+set TypesPath=.\Types
+for %%F in (%TypesPath%\*.sql) do (
+    echo Executing "%%F"
+    %SqlCmdPath% -S %ServerName% -d %DatabaseName% -U %SQLUSERNAME% -P %SQLPASSWORD% -i "%%F" >> DB.log 2>&1
+    call :CheckErrors "%%F"
+)
 
 echo.
 
@@ -58,7 +74,7 @@ echo  **************************
 echo     Creating %DatabaseName% Stored Procedures.
 echo  **************************
 
-REM Execute all stored procedures
+REM Execute all stored procedures AFTER types
 set StoredProcPath=.\StoredProcedures
 for %%F in (%StoredProcPath%\*.sql) do (
     echo Executing "%%F"

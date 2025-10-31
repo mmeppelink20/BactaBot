@@ -1,11 +1,3 @@
-CREATE TYPE UsersIDs AS TABLE
-(
-    user_id BIGINT,
-    guild_id BIGINT,
-    PRIMARY KEY (user_id, guild_id) -- Composite primary key
-);
-GO
-
 CREATE PROCEDURE sp_deactivate_guild_users
     @Users UsersIDs READONLY
 AS
@@ -23,5 +15,3 @@ BEGIN
     );
 END;
 GO
-
-    
