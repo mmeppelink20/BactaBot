@@ -33,6 +33,7 @@ namespace LogicLayer
         private readonly IBactaConfigurationManager _bactaConfigurationManager = bactaConfigurationManager;
         private readonly IChatGPTManager _chatGPTManager = chatGPTManager;
 
+
         public Func<Task>? ShutdownRequested { get; set; }
 
         public async Task MessageRecieved(SocketMessage message)
@@ -134,6 +135,14 @@ namespace LogicLayer
                         await ShutdownRequested();
                     }
                 }
+                else if (message.Content == "!importHistory")
+                {
+                    prefixCommandInvoked = "importHistory";
+                    _logger.LogCritical("Import history requested by {User}: {UserID}", message.Author.Username, message.Author.Id);
+                    await MessageDevelopers(message, prefixCommandInvoked);
+                    await ImportChannelHistoryAsync(message);
+                }
+
             }
 
         }
@@ -144,7 +153,7 @@ namespace LogicLayer
             if (string.IsNullOrEmpty(developerUserIdList))
             {
                 _logger.LogWarning("DEVELOPER_USERID_LIST is not configured or is empty.");
-                return new HashSet<ulong>();
+                return [];
             }
             return new HashSet<ulong>(developerUserIdList.Split(',').Select(ulong.Parse));
         }
@@ -171,37 +180,51 @@ namespace LogicLayer
                 return;
             }
 
-            if (message.Reference?.MessageId.IsSpecified == true)
-            {
-                try
-                {
-                    var referencedMessage = await message.Channel.GetMessageAsync(message.Reference.MessageId.Value);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning((int)BactaLogging.LogEvent.MessageRelated, ex, "Failed to retrieve referenced message.");
-                }
-            }
-
             try
             {
                 await message.Channel.TriggerTypingAsync();
 
-                var response = await _chatGPTManager.RetrieveChatBotCompletionFromChatGPTAsync(message, int.Parse(_configuration["MINUTES_FOR_CHAT"] ?? "60"));
+                // Add retry logic with exponential backoff
+                int maxRetries = 3;
+                int currentRetry = 0;
+                while (currentRetry < maxRetries)
+                {
+                    try
+                    {
+                        var response = await _chatGPTManager.RetrieveChatBotCompletionFromChatGPTAsync(
+                            message, 
+                            int.Parse(_configuration["MINUTES_FOR_CHAT"] ?? "60")
+                        );
 
-                var allowedMentions = _configuration["MENTION_USER_ON_REPLY"]?.ToLower() == "0" ? AllowedMentions.None : null;
+                        var allowedMentions = _configuration["MENTION_USER_ON_REPLY"]?.ToLower() == "0" 
+                            ? AllowedMentions.None 
+                            : null;
 
-                await userMessage.ReplyAsync(response, allowedMentions: allowedMentions);
+                        await userMessage.ReplyAsync(response, allowedMentions: allowedMentions);
+                        return; // Success, exit the method
+                    }
+                    catch (HttpRequestException ex) when (ex.InnerException is IOException)
+                    {
+                        currentRetry++;
+                        if (currentRetry >= maxRetries)
+                            throw; // Rethrow if we've exhausted retries
+
+                        // Exponential backoff
+                        int delayMs = (int)Math.Pow(2, currentRetry) * 1000;
+                        await Task.Delay(delayMs);
+                    }
+                }
             }
             catch (Exception ex)
             {
-                _logger.LogError((int)BactaLogging.LogEvent.ChatGPT, ex, "An error occurred while retrieving the chat bot completion.");
+                _logger.LogError((int)BactaLogging.LogEvent.ChatGPT, ex, 
+                    "An error occurred while retrieving the chat bot completion. Retry count exceeded.");
 
                 await MessageDevelopers(message, ex.ToString());
-                await userMessage.ReplyAsync("An error occurred while processing your message. Please try again later.");
+                await userMessage.ReplyAsync(
+                    "I'm having trouble processing your message right now. Please try again in a few moments.");
             }
         }
-
 
         public async Task SlashCommandExecuted(SocketSlashCommand command)
         {
@@ -213,5 +236,44 @@ namespace LogicLayer
             await _buttonManager.ButtonExecutorAsync(component);
         }
 
+        private async Task ImportChannelHistoryAsync(SocketMessage message)
+        {
+            if (message.Channel is not SocketTextChannel textChannel)
+            {
+                _logger.LogWarning((int)BactaLogging.LogEvent.MessageRelated, "Channel is not a text channel.");
+                return;
+            }
+            int totalImported = 0;
+            int batchSize = 100;
+            ulong? lastMessageId = message.Id;
+            bool continueFetching = true;
+            while (continueFetching)
+            {
+                var messages = lastMessageId == null
+                    ? await textChannel.GetMessagesAsync(batchSize).FlattenAsync()
+                    : await textChannel.GetMessagesAsync(lastMessageId.Value, Direction.Before, batchSize).FlattenAsync();
+
+                var messageList = messages.ToList();
+
+                if (messageList.Count == 0)
+                {
+                    break;
+                }
+
+                await _messageManager.AddDiscordMessagesAsync(messageList);
+
+                totalImported += messageList.Count;
+
+                lastMessageId = messageList.Last().Id;
+
+                if (messageList.Count < batchSize)
+                {
+                    continueFetching = false;
+                }
+
+            }
+
+            await message.Channel.SendMessageAsync($"Imported {totalImported} messages from this channel.");
+        }
     }
 }

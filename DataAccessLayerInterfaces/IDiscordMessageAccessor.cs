@@ -8,6 +8,7 @@ namespace DataAccessLayerInterfaces
     {
         // insert
         Task InsertDiscordMessage(DiscordMessageVM message);
+        Task InsertDiscordMessages(IEnumerable<DiscordMessageVM> messages);
 
         // update
         Task UpdateDiscordMessage(DiscordMessage message);

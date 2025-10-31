@@ -59,6 +59,92 @@ namespace LogicLayer
             }
         }
 
+        public async Task AddDiscordMessagesAsync(IEnumerable<SocketMessage> messages)
+        {
+            var discordMessages = new List<DiscordMessageVM>();
+
+            foreach (var message in messages)
+            {
+                if (message.Channel is IGuildChannel guildChannel)
+                {
+                    discordMessages.Add(new DiscordMessageVM
+                    {
+                        MessageId = message.Id,
+                        ChannelId = message.Channel.Id,
+                        UserId = message.Author.Id,
+                        UserName = message.Author.Username,
+                        NickName = (message.Author as SocketGuildUser)?.Nickname,
+                        JoinedDate = (message.Author as SocketGuildUser)?.JoinedAt?.DateTime,
+                        Content = message.Content,
+                        CleanContent = message.CleanContent,
+                        MessageDatetime = message.Timestamp.DateTime,
+                        IsEdited = message.EditedTimestamp.HasValue,
+                        MessageEditedDatetime = message.EditedTimestamp?.DateTime,
+                        AttachmentUrl = message.Attachments.Count > 0 ? message.Attachments.First().Url : null,
+                        MessageLink = message.GetJumpUrl(),
+                        RepliedToMessageId = (ulong?)(message.Reference?.MessageId),
+                        ChannelName = guildChannel.Name,
+                        ChannelType = guildChannel.ChannelType.ToString(),
+                        GuildId = guildChannel.GuildId,
+                        AvatarUrl = (message.Author as SocketGuildUser)?.GetAvatarUrl() ?? message.Author.GetDefaultAvatarUrl(),
+                    });
+                }
+            }
+
+            if (discordMessages.Count > 0)
+            {
+                foreach(var msg in discordMessages)
+                {
+                    _logger.LogDebug("Prepared message for bulk insert: {MessageId} in Channel {ChannelId} by User {UserId}", msg.MessageId, msg.ChannelId, msg.UserId);
+                    await _discordMessageAccessor.InsertDiscordMessage(msg);
+                }
+                _logger.LogInformation("Bulk inserted {Count} messages.", discordMessages.Count);
+            }
+        }
+
+        public async Task AddDiscordMessagesAsync(IEnumerable<IMessage> messages)
+        {
+            var discordMessages = new List<DiscordMessageVM>();
+
+            foreach (var message in messages)
+            {
+                if (message.Channel is IGuildChannel guildChannel)
+                {
+                    discordMessages.Add(new DiscordMessageVM
+                    {
+                        MessageId = message.Id,
+                        ChannelId = message.Channel.Id,
+                        UserId = message.Author.Id,
+                        UserName = message.Author.Username,
+                        NickName = (message.Author as SocketGuildUser)?.Nickname,
+                        JoinedDate = (message.Author as SocketGuildUser)?.JoinedAt?.DateTime,
+                        Content = message.Content,
+                        CleanContent = message.CleanContent,
+                        MessageDatetime = message.Timestamp.DateTime,
+                        IsEdited = message.EditedTimestamp.HasValue,
+                        MessageEditedDatetime = message.EditedTimestamp?.DateTime,
+                        AttachmentUrl = message.Attachments.Count > 0 ? message.Attachments.First().Url : null,
+                        MessageLink = message.GetJumpUrl(),
+                        RepliedToMessageId = (ulong?)(message.Reference?.MessageId),
+                        ChannelName = guildChannel.Name,
+                        ChannelType = guildChannel.ChannelType.ToString(),
+                        GuildId = guildChannel.GuildId,
+                        AvatarUrl = (message.Author as SocketGuildUser)?.GetAvatarUrl() ?? message.Author.GetDefaultAvatarUrl(),
+                    });
+                }
+            }
+
+            if (discordMessages.Count > 0)
+            {
+                foreach (var msg in discordMessages)
+                {
+                    _logger.LogDebug("Prepared message for bulk insert: {MessageId} in Channel {ChannelId} by User {UserId}", msg.MessageId, msg.ChannelId, msg.UserId);
+                    await _discordMessageAccessor.InsertDiscordMessage(msg);
+                }
+                _logger.LogInformation("Bulk inserted {Count} messages.", discordMessages.Count);
+            }
+        }
+
         public async Task<bool> DeleteDiscordMessageAsync(ulong messageID)
         {
             bool isDeleted = false;
