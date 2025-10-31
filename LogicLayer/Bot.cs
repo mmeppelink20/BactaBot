@@ -26,7 +26,12 @@ namespace LogicLayer
 
         public async Task StartAsync(ServiceProvider services)
         {
+#if DEBUG
+            string discordToken = _configuration["profiles:BactaBot:environmentVariables:DISCORD_TEST_TOKEN"] ?? throw new Exception("Missing Discord token");
+
+#else
             string discordToken = _configuration["profiles:BactaBot:environmentVariables:DISCORD_TOKEN"] ?? throw new Exception("Missing Discord token");
+#endif
 
             _bactaConfigurationManager.RegisterConfiguration();
 
