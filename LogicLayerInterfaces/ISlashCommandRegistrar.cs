@@ -1,11 +1,15 @@
-﻿using Discord.WebSocket;
+﻿using DataObjects;
+using Discord.WebSocket;
 
 namespace LogicLayerInterfaces
 {
     public interface ISlashCommandRegistrar
     {
-        public Task RegisterCommandsAsync();
-        public Task DeleteCommand(SocketApplicationCommand command);
-        public Task<IEnumerable<SocketApplicationCommand>> GetRegisteredSlashCommandsAsync();
+        Task<OperationResult> RegisterCommandsAsync();
+        Task<OperationResult> DeleteCommandAsync(SocketApplicationCommand command);
+        Task<OperationResult<IEnumerable<SocketApplicationCommand>>> GetRegisteredSlashCommandsAsync();
+
+        // Legacy methods for backward compatibility
+        Task DeleteCommand(SocketApplicationCommand command);
     }
 }

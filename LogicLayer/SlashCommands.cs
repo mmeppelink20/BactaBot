@@ -3,15 +3,27 @@ using Discord.Commands;
 using Discord.Interactions;
 using Discord.WebSocket;
 using LogicLayerInterfaces;
+using LogicLayerInterfaces.CommandHandlers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using DataObjects;
 
 namespace LogicLayer
 {
-    public class SlashCommands(ILogger<ISlashCommands> logger, IConfiguration configuration, DiscordSocketClient client, CommandService commands, IGuildMessageManager messageManager, IButtons buttons, IChatGPTManager chatGPTManager, IBactaManager bactaManager) : ISlashCommands
+    public class SlashCommands(
+        ILogger<ISlashCommands> logger, 
+        IConfiguration configuration, 
+        DiscordSocketClient client, 
+        CommandService commands, 
+        IGuildMessageManager messageManager, 
+        IButtons buttons, 
+        IChatGPTManager chatGPTManager, 
+        IBactaManager bactaManager, 
+        IBactaConfigurationManager bactaConfigurationManager,
+        IConfigCommandHandler configCommandHandler,
+        IDeveloperCommandHandler developerCommandHandler,
+        ICommandPermissionHelper permissionHelper) : ISlashCommands
     {
-
         private readonly ILogger<ISlashCommands> _logger = logger;
         private readonly IConfiguration _configuration = configuration;
         private readonly DiscordSocketClient _client = client;
@@ -20,6 +32,10 @@ namespace LogicLayer
         private readonly IButtons _buttons = buttons;
         private readonly IChatGPTManager _chatGPTManager = chatGPTManager;
         private readonly IBactaManager _bactaManager = bactaManager;
+        private readonly IBactaConfigurationManager _bactaConfigurationManager = bactaConfigurationManager;
+        private readonly IConfigCommandHandler _configCommandHandler = configCommandHandler;
+        private readonly IDeveloperCommandHandler _developerCommandHandler = developerCommandHandler;
+        private readonly ICommandPermissionHelper _permissionHelper = permissionHelper;
 
         public async Task HandleBactaCommand(SocketSlashCommand command)
         {
@@ -29,7 +45,6 @@ namespace LogicLayer
 
             await command.FollowupAsync(components: builder.Build(), embed: BactaManager.BactaEmbedBuilder(result).Build());
         }
-
 
         public async Task HandleQuestionCommand(SocketSlashCommand command)
         {
@@ -53,22 +68,19 @@ namespace LogicLayer
         {
             try
             {
-
                 if (command.Channel is not IGuildChannel guild)
                 {
                     _logger.LogWarning("Command invoked by {Invoker} in a non-guild channel", command.User);
-                    return; // Exit early if the channel is not a guild channel
+                    return;
                 }
 
                 await command.FollowupAsync("I can't do that yet...");
-
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred while handling the Summarize command.");
                 await command.FollowupAsync("An error occurred while processing your command.", ephemeral: true);
             }
-
         }
 
         public async Task HandlePingCommand(SocketSlashCommand command)
@@ -78,7 +90,6 @@ namespace LogicLayer
 
             await command.FollowupAsync(response, ephemeral: true);
         }
-
 
         public async Task HandleCreditsCommand(SocketSlashCommand command)
         {
@@ -91,5 +102,90 @@ namespace LogicLayer
             await command.FollowupAsync("Leaderboard", ephemeral: true);
         }
 
+        public async Task HandleConfigCommand(SocketSlashCommand command)
+        {
+            try
+            {
+                if (!_permissionHelper.IsUserDeveloper(command.User.Id))
+                {
+                    await command.FollowupAsync("❌ **Access Denied:** You are not authorized to use this command.", ephemeral: true);
+                    return;
+                }
+
+                var subCommand = command.Data.Options.FirstOrDefault();
+                if (subCommand == null)
+                {
+                    await command.FollowupAsync("❌ **Error:** No subcommand specified.", ephemeral: true);
+                    return;
+                }
+
+                switch (subCommand.Name.ToLower())
+                {
+                    case "set":
+                        await _configCommandHandler.HandleSetCommand(command, subCommand);
+                        break;
+                    case "get":
+                        await _configCommandHandler.HandleGetCommand(command, subCommand);
+                        break;
+                    case "list":
+                        await _configCommandHandler.HandleListCommand(command);
+                        break;
+                    case "delete":
+                        await _configCommandHandler.HandleDeleteCommand(command, subCommand);
+                        break;
+                    case "reload":
+                        await _configCommandHandler.HandleReloadCommand(command);
+                        break;
+                    default:
+                        await command.FollowupAsync("❌ **Error:** Unknown subcommand.", ephemeral: true);
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error handling config slash command");
+                await command.FollowupAsync("❌ **Error:** An unexpected error occurred while processing the configuration command.", ephemeral: true);
+            }
+        }
+
+        public async Task HandleDeveloperCommand(SocketSlashCommand command)
+        {
+            try
+            {
+                if (!_permissionHelper.IsUserDeveloper(command.User.Id))
+                {
+                    await command.FollowupAsync("❌ **Access Denied:** You are not authorized to use this command.", ephemeral: true);
+                    return;
+                }
+
+                var subCommand = command.Data.Options.FirstOrDefault();
+                if (subCommand == null)
+                {
+                    await command.FollowupAsync("❌ **Error:** No subcommand specified.", ephemeral: true);
+                    return;
+                }
+
+                switch (subCommand.Name.ToLower())
+                {
+                    case "add":
+                        await _developerCommandHandler.HandleAddCommand(command, subCommand);
+                        break;
+                    case "remove":
+                        await _developerCommandHandler.HandleRemoveCommand(command, subCommand);
+                        break;
+                    case "list":
+                        await _developerCommandHandler.HandleListCommand(command);
+                        break;
+                    default:
+                        await command.FollowupAsync("❌ **Error:** Unknown subcommand.", ephemeral: true);
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error handling developer slash command");
+                await command.FollowupAsync("❌ **Error:** An unexpected error occurred while processing the developer command.", ephemeral: true);
+            }
+        }
     }
 }

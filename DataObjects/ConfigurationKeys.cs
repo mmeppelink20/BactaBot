@@ -45,10 +45,71 @@
         public const string OpenAiApiKey = "OPEN_AI_API_KEY";
 
         // Discord settings
-        public const string DiscordToken = "profiles:BactaBot:environmentVariables:DISCORD_TOKEN";
-        public const string DiscordTestToken = "profiles:BactaBot:environmentVariables:DISCORD_TEST_TOKEN";
+        public const string DiscordToken = "DISCORD_TOKEN";
+        public const string DiscordTestToken = "DISCORD_TEST_TOKEN";
+
+        // Encryption settings
+        public const string EncryptionKey = "ENCRYPTION_KEY";
+        public const string EncryptionIV = "ENCRYPTION_IV";
 
         // Logging settings
         public const string LoggingDefault = "Logging:Default";
+
+        /// <summary>
+        /// Configuration keys that should be encrypted when stored in the database
+        /// </summary>
+        public static readonly HashSet<string> SensitiveKeys = new(StringComparer.OrdinalIgnoreCase)
+        {
+            OpenAiApiKey,
+            DiscordToken,
+            DiscordTestToken,
+            EncryptionKey,
+            EncryptionIV
+        };
+
+        /// <summary>
+        /// Configuration keys that are required for the bot to function
+        /// </summary>
+        public static readonly HashSet<string> RequiredKeys = new(StringComparer.OrdinalIgnoreCase)
+        {
+            AuthenticationRetryCount,
+            MinutesForChat,
+            BactaBotModel,
+            BactaBotPrompt,
+            BactaBotName,
+#if DEBUG
+            DiscordTestToken,
+#else
+            DiscordToken,
+#endif
+            OpenAiApiKey
+        };
+
+        /// <summary>
+        /// Determines if a configuration key should be treated as sensitive based on database flag or fallback logic
+        /// </summary>
+        /// <param name="key">The configuration key to check</param>
+        /// <param name="isEncryptedInDb">Whether the key is marked as encrypted in the database</param>
+        /// <param name="forceEncryption">Whether encryption was explicitly requested</param>
+        /// <returns>True if the key should be treated as sensitive</returns>
+        public static bool IsSensitiveKey(string key, bool? isEncryptedInDb = null, bool forceEncryption = false)
+        {
+            // If database encryption flag is available, use it
+            if (isEncryptedInDb.HasValue)
+                return isEncryptedInDb.Value;
+
+            // Otherwise fall back to existing logic
+            return forceEncryption || SensitiveKeys.Contains(key);
+        }
+
+        /// <summary>
+        /// Determines if a configuration key is required for bot operation
+        /// </summary>
+        /// <param name="key">The configuration key to check</param>
+        /// <returns>True if the key is required</returns>
+        public static bool IsRequiredKey(string key)
+        {
+            return RequiredKeys.Contains(key);
+        }
     }
 }

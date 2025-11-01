@@ -11,6 +11,8 @@ namespace LogicLayer
             ButtonId.btnDm => "DM",
             ButtonId.btnShare => "Share",
             ButtonId.btnRespin => "Respin",
+            ButtonId.btnConfigListPrevious => "◀ Previous",
+            ButtonId.btnConfigListNext => "Next ▶",
             _ => "Unknown"
         };
 
@@ -19,6 +21,8 @@ namespace LogicLayer
             ButtonId.btnDm => ButtonStyle.Primary,
             ButtonId.btnShare => ButtonStyle.Success,
             ButtonId.btnRespin => ButtonStyle.Secondary,
+            ButtonId.btnConfigListPrevious => ButtonStyle.Primary,
+            ButtonId.btnConfigListNext => ButtonStyle.Primary,
             _ => ButtonStyle.Secondary
         };
     }

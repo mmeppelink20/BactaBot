@@ -11,6 +11,6 @@ namespace LogicLayerInterfaces
         Task MessageUpdated(SocketMessage oldMessage, SocketMessage newMessage);
         Task SlashCommandExecuted(SocketSlashCommand command);
         Task ButtonExecuted(SocketMessageComponent component);
-
+        Task AutocompleteExecuted(SocketAutocompleteInteraction interaction);
     }
 }

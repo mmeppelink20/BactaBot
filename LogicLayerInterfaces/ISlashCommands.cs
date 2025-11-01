@@ -10,5 +10,7 @@ namespace LogicLayerInterfaces
         Task HandlePingCommand(SocketSlashCommand command);
         Task HandleCreditsCommand(SocketSlashCommand command);
         Task HandleLeaderboardCommand(SocketSlashCommand command);
+        Task HandleConfigCommand(SocketSlashCommand command);
+        Task HandleDeveloperCommand(SocketSlashCommand command);
     }
 }

@@ -1,21 +1,20 @@
 ﻿using DataAccessLayerInterfaces;
 using Microsoft.Data.SqlClient;
 using System.Data;
+using DataObjects;
 
 namespace DataAccessLayer
 {
     public class GuildAccessor(IDBConnection dbConnection) : IGuildAccessor
     {
         private readonly IDBConnection _dbConnection = dbConnection;
+
         public async Task DeactivateMultipleGuildsAsync(List<ulong> guilds)
         {
-            string cmdText = "sp_deactivate_guilds";
-
-
             using (var conn = _dbConnection.GetConnection())
             {
                 conn.Open();
-                using (var cmd = new SqlCommand(cmdText, conn))
+                using (var cmd = new SqlCommand(StoredProcedure.DeactivateGuilds, conn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     // Create DataTable matching the table type
@@ -49,13 +48,11 @@ namespace DataAccessLayer
 
         public async Task InsertGuildAsync(ulong guildId, string guildName)
         {
-            string cmdText = "sp_insert_guild";
-
             using (var conn = _dbConnection.GetConnection())
             {
                 await conn.OpenAsync();
 
-                using (var cmd = new SqlCommand(cmdText, conn))
+                using (var cmd = new SqlCommand(StoredProcedure.InsertGuild, conn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
 
@@ -76,13 +73,11 @@ namespace DataAccessLayer
 
         public async Task InsertMultipleGuildsAsync(Dictionary<ulong, string> guilds)
         {
-            string cmdText = "sp_insert_multiple_guilds";
-
             using (var conn = _dbConnection.GetConnection())
             {
                 await conn.OpenAsync();
 
-                using (var cmd = new SqlCommand(cmdText, conn))
+                using (var cmd = new SqlCommand(StoredProcedure.InsertMultipleGuilds, conn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
 

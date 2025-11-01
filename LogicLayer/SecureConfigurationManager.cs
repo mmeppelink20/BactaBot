@@ -3,42 +3,69 @@ using DataObjects;
 using LogicLayerInterfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Data.Common;
 
 namespace LogicLayer
 {
-    public class BactaConfigurationManager(ILogger<IBactaConfigurationManager> logger, IConfiguration configuration, IConfigurationAccessor configurationAccessor) : IBactaConfigurationManager
+    /// <summary>
+    /// Enhanced configuration manager with encryption support for sensitive data
+    /// </summary>
+    public class SecureConfigurationManager : IBactaConfigurationManager
     {
-        private readonly ILogger<IBactaConfigurationManager> _logger = logger;
-        private readonly IConfiguration _configuration = configuration;
-        private readonly IConfigurationAccessor _configurationAccessor = configurationAccessor;
+        private readonly ILogger<SecureConfigurationManager> _logger;
+        private readonly IConfiguration _configuration;
+        private readonly IConfigurationAccessor _configurationAccessor;
+        private readonly IEncryptionManager _encryptionManager;
+
+        public SecureConfigurationManager(
+            ILogger<SecureConfigurationManager> logger,
+            IConfiguration configuration,
+            IConfigurationAccessor configurationAccessor,
+            IEncryptionManager encryptionManager)
+        {
+            _logger = logger;
+            _configuration = configuration;
+            _configurationAccessor = configurationAccessor;
+            _encryptionManager = encryptionManager;
+        }
 
         public async Task<OperationResult<Dictionary<string, string>>> RetrieveAllConfigurationKeysValuesAsync()
         {
             try
             {
-                _logger.LogDebug("Retrieving all configuration key-value pairs from database");
-                
+                _logger.LogDebug("Retrieving and decrypting all configuration key-value pairs from database");
+
                 var keyValuePairs = await _configurationAccessor.GetAllConfigurationKeysValuesAsync();
-                
+
                 if (keyValuePairs == null)
                 {
                     _logger.LogWarning("Configuration accessor returned null for all configuration keys");
                     return OperationResult<Dictionary<string, string>>.Success(new Dictionary<string, string>());
                 }
 
-                _logger.LogInformation("Successfully retrieved {Count} configuration key-value pairs", keyValuePairs.Count);
-                return OperationResult<Dictionary<string, string>>.Success(keyValuePairs);
+                var decryptedPairs = new Dictionary<string, string>();
+                foreach (var kvp in keyValuePairs)
+                {
+                    try
+                    {
+                        var decryptedValue = DecryptIfSensitive(kvp.Key, kvp.Value);
+                        decryptedPairs[kvp.Key] = decryptedValue;
+                    }
+                    catch (EncryptionException ex)
+                    {
+                        _logger.LogError(ex, "Failed to decrypt configuration key '{Key}'. Using encrypted value as-is.", kvp.Key);
+                        // Return the encrypted value as-is if decryption fails
+                        decryptedPairs[kvp.Key] = kvp.Value;
+                    }
+                }
+
+                _logger.LogInformation("Successfully retrieved and processed {Count} configuration key-value pairs", decryptedPairs.Count);
+                return OperationResult<Dictionary<string, string>>.Success(decryptedPairs);
             }
             catch (DbException ex)
             {
                 var errorMessage = "Database error occurred while retrieving all configuration key values";
-                _logger.LogError((int)BactaLogging.LogEvent.Configuration, ex, errorMessage);
-                return OperationResult<Dictionary<string, string>>.Failure(new DatabaseException("RetrieveAllConfigurationKeysValues", errorMessage, ex));
-            }
-            catch (TimeoutException ex)
-            {
-                var errorMessage = "Timeout occurred while retrieving all configuration key values";
                 _logger.LogError((int)BactaLogging.LogEvent.Configuration, ex, errorMessage);
                 return OperationResult<Dictionary<string, string>>.Failure(new DatabaseException("RetrieveAllConfigurationKeysValues", errorMessage, ex));
             }
@@ -62,34 +89,35 @@ namespace LogicLayer
             try
             {
                 _logger.LogDebug("Retrieving configuration value for key: {Key}", key);
-                
+
                 var value = await _configurationAccessor.GetConfigurationKeyValueAsync(key);
-                
+
                 if (string.IsNullOrEmpty(value))
                 {
                     _logger.LogWarning("Configuration key '{Key}' returned null or empty value", key);
                     return OperationResult<ConfigurationItem>.Failure($"Configuration key '{key}' not found or has empty value");
                 }
 
+                var decryptedValue = DecryptIfSensitive(key, value);
+
                 var item = new ConfigurationItem
                 {
                     Key = key,
-                    Value = value,
-                    IsEncrypted = false // Basic manager doesn't handle encryption
+                    Value = decryptedValue
                 };
 
-                _logger.LogDebug("Successfully retrieved configuration value for key: {Key}", key);
+                _logger.LogDebug("Successfully retrieved and processed configuration value for key: {Key}", key);
                 return OperationResult<ConfigurationItem>.Success(item);
+            }
+            catch (EncryptionException ex)
+            {
+                var errorMessage = $"Encryption error occurred while retrieving configuration key '{key}'";
+                _logger.LogError((int)BactaLogging.LogEvent.Configuration, ex, errorMessage);
+                return OperationResult<ConfigurationItem>.Failure(new ConfigurationException(key, errorMessage, ex));
             }
             catch (DbException ex)
             {
                 var errorMessage = $"Database error occurred while retrieving configuration key '{key}'";
-                _logger.LogError((int)BactaLogging.LogEvent.Configuration, ex, errorMessage);
-                return OperationResult<ConfigurationItem>.Failure(new DatabaseException("RetrieveConfigurationKeyValue", errorMessage, ex));
-            }
-            catch (TimeoutException ex)
-            {
-                var errorMessage = $"Timeout occurred while retrieving configuration key '{key}'";
                 _logger.LogError((int)BactaLogging.LogEvent.Configuration, ex, errorMessage);
                 return OperationResult<ConfigurationItem>.Failure(new DatabaseException("RetrieveConfigurationKeyValue", errorMessage, ex));
             }
@@ -126,15 +154,8 @@ namespace LogicLayer
             {
                 _logger.LogDebug("Setting configuration key '{Key}' in database", key);
 
-                // Note: Basic configuration manager doesn't support encryption
-                // The forceEncryption parameter is ignored in this implementation
-                // For encryption support, use SecureConfigurationManager instead
-                if (forceEncryption)
-                {
-                    _logger.LogWarning("Encryption requested for key '{Key}', but basic configuration manager doesn't support encryption. Consider using SecureConfigurationManager.", key);
-                }
-
-                var success = await _configurationAccessor.SetConfigurationKeyValueAsync(key, value);
+                var valueToStore = forceEncryption ? _encryptionManager.Encrypt(value) : EncryptIfSensitive(key, value);
+                var success = await _configurationAccessor.SetConfigurationKeyValueAsync(key, valueToStore);
 
                 if (!success)
                 {
@@ -143,21 +164,22 @@ namespace LogicLayer
                     return OperationResult.Failure(errorMessage);
                 }
 
-                // Store the value in memory
+                // Store the decrypted value in memory
                 _configuration[key] = value;
 
-                _logger.LogInformation("Successfully set configuration key '{Key}' in database and memory", key);
+                var encryptionStatus = forceEncryption || ConfigurationKeys.SensitiveKeys.Contains(key) ? "encrypted" : "plaintext";
+                _logger.LogInformation("Successfully set configuration key '{Key}' in database ({EncryptionStatus}) and memory", key, encryptionStatus);
                 return OperationResult.Success();
+            }
+            catch (EncryptionException ex)
+            {
+                var errorMessage = $"Encryption error occurred while setting configuration key '{key}'";
+                _logger.LogError((int)BactaLogging.LogEvent.Configuration, ex, errorMessage);
+                return OperationResult.Failure(new ConfigurationException(key, errorMessage, ex));
             }
             catch (DbException ex)
             {
                 var errorMessage = $"Database error occurred while setting configuration key '{key}'";
-                _logger.LogError((int)BactaLogging.LogEvent.Configuration, ex, errorMessage);
-                return OperationResult.Failure(new DatabaseException("SetConfigurationKeyValue", errorMessage, ex));
-            }
-            catch (TimeoutException ex)
-            {
-                var errorMessage = $"Timeout occurred while setting configuration key '{key}'";
                 _logger.LogError((int)BactaLogging.LogEvent.Configuration, ex, errorMessage);
                 return OperationResult.Failure(new DatabaseException("SetConfigurationKeyValue", errorMessage, ex));
             }
@@ -200,12 +222,6 @@ namespace LogicLayer
                 _logger.LogError((int)BactaLogging.LogEvent.Configuration, ex, errorMessage);
                 return OperationResult.Failure(new DatabaseException("DeleteConfigurationKey", errorMessage, ex));
             }
-            catch (TimeoutException ex)
-            {
-                var errorMessage = $"Timeout occurred while deleting configuration key '{key}'";
-                _logger.LogError((int)BactaLogging.LogEvent.Configuration, ex, errorMessage);
-                return OperationResult.Failure(new DatabaseException("DeleteConfigurationKey", errorMessage, ex));
-            }
             catch (Exception ex)
             {
                 var errorMessage = $"Unexpected error occurred while deleting configuration key '{key}'";
@@ -232,13 +248,14 @@ namespace LogicLayer
 
             try
             {
-                _logger.LogDebug("Adding configuration key '{Key}' with value", key);
+                _logger.LogDebug("Adding configuration key '{Key}' to memory", key);
                 _configuration[key] = value;
+                _logger.LogInformation("Successfully added configuration key '{Key}' to memory", key);
                 return OperationResult.Success();
             }
             catch (Exception ex)
             {
-                var errorMessage = $"Failed to add configuration key '{key}'";
+                var errorMessage = $"Failed to add configuration key '{key}' to memory";
                 _logger.LogError((int)BactaLogging.LogEvent.Configuration, ex, errorMessage);
                 return OperationResult.Failure(new ConfigurationException(key, errorMessage, ex));
             }
@@ -248,7 +265,7 @@ namespace LogicLayer
         {
             try
             {
-                _logger.LogInformation("Starting configuration registration process");
+                _logger.LogInformation("Starting secure configuration registration process");
 
                 var result = await RetrieveAllConfigurationKeysValuesAsync();
                 if (result.IsFailure)
@@ -275,12 +292,8 @@ namespace LogicLayer
                     }
                 }
 
-                _logger.LogInformation("Successfully added {SuccessCount} configuration keys to memory", successCount);
-
-                if (failureCount > 0)
-                {
-                    _logger.LogWarning("Failed to add {FailureCount} configuration keys to memory", failureCount);
-                }
+                _logger.LogInformation("Configuration registration completed. Success: {SuccessCount}, Failures: {FailureCount}",
+                    successCount, failureCount);
 
                 // Validate the configuration after loading
                 var validationResult = ConfigurationValidator.ValidateConfiguration(_configuration, _logger);
@@ -294,13 +307,12 @@ namespace LogicLayer
             }
             catch (Exception ex)
             {
-                var errorMessage = "Unexpected error during configuration registration";
+                var errorMessage = "Unexpected error during secure configuration registration";
                 _logger.LogError((int)BactaLogging.LogEvent.Configuration, ex, errorMessage);
                 return OperationResult.Failure(new ConfigurationException(errorMessage, ex));
             }
         }
 
-        // Legacy method for backward compatibility
         public void RegisterConfiguration()
         {
             try
@@ -308,19 +320,59 @@ namespace LogicLayer
                 var result = RegisterConfigurationAsync().GetAwaiter().GetResult();
                 if (result.IsFailure)
                 {
-                    _logger.LogError("Configuration registration failed: {Error}", result.ErrorMessage);
-                    throw new ConfigurationException("Configuration registration failed", result.Exception ?? new Exception(result.ErrorMessage));
+                    _logger.LogError("Secure configuration registration failed: {Error}", result.ErrorMessage);
+                    throw new ConfigurationException("Secure configuration registration failed", result.Exception ?? new Exception(result.ErrorMessage));
                 }
             }
             catch (ConfigurationException)
             {
-                throw; // Re-throw configuration exceptions as-is
+                throw;
             }
             catch (Exception ex)
             {
                 _logger.LogError((int)BactaLogging.LogEvent.Configuration, ex, "Unexpected error in legacy RegisterConfiguration method");
-                throw new ConfigurationException("Configuration registration failed", ex);
+                throw new ConfigurationException("Secure configuration registration failed", ex);
             }
         }
+
+        /// <summary>
+        /// Encrypts the value if the key is marked as sensitive
+        /// </summary>
+        private string EncryptIfSensitive(string key, string value)
+        {
+            if (ConfigurationKeys.SensitiveKeys.Contains(key))
+            {
+                _logger.LogDebug("Encrypting sensitive configuration key: {Key}", key);
+                return _encryptionManager.Encrypt(value);
+            }
+            return value;
+        }
+
+        /// <summary>
+        /// Decrypts the value if the key is marked as sensitive and the value appears encrypted
+        /// </summary>
+        private string DecryptIfSensitive(string key, string value)
+        {
+            if (ConfigurationKeys.SensitiveKeys.Contains(key))
+            {
+                if (_encryptionManager.IsEncrypted(value))
+                {
+                    _logger.LogDebug("Decrypting sensitive configuration key: {Key}", key);
+                    return _encryptionManager.Decrypt(value);
+                }
+                else
+                {
+                    _logger.LogWarning("Sensitive key '{Key}' appears to be stored in plain text", key);
+                }
+            }
+            return value;
+        }
+    }
+
+    public class EncryptionException : Exception
+    {
+        public EncryptionException() { }
+        public EncryptionException(string message) : base(message) { }
+        public EncryptionException(string message, Exception inner) : base(message, inner) { }
     }
 }

@@ -2,6 +2,7 @@
 using Discord.Commands;
 using Discord.WebSocket;
 using LogicLayerInterfaces;
+using LogicLayerInterfaces.CommandHandlers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using static DataObjects.ButtonIdContainer;
@@ -16,6 +17,7 @@ namespace LogicLayer
         private readonly CommandService _commands;
         private readonly IGuildMessageManager _messageManager;
         private readonly IButtons _buttons;
+        private readonly IConfigCommandHandler _configCommandHandler;
 
         private readonly Dictionary<string, Func<SocketMessageComponent, Task>> _buttonList;
 
@@ -25,7 +27,8 @@ namespace LogicLayer
             DiscordSocketClient client,
             CommandService commands,
             IGuildMessageManager messageManager,
-            IButtons buttons)
+            IButtons buttons,
+            IConfigCommandHandler configCommandHandler)
         {
             _logger = logger;
             _configuration = configuration;
@@ -33,13 +36,16 @@ namespace LogicLayer
             _commands = commands;
             _messageManager = messageManager;
             _buttons = buttons;
+            _configCommandHandler = configCommandHandler;
 
             // Map button IDs to handlers  
             _buttonList = new Dictionary<string, Func<SocketMessageComponent, Task>>
                {
                    { ButtonId.btnDm.ToString(), component => _buttons.BtnDm(component, null) },
                    { ButtonId.btnShare.ToString(), component => _buttons.BtnShare(component, null) },
-                   { ButtonId.btnRespin.ToString(), component => _buttons.BtnRespin(component) }
+                   { ButtonId.btnRespin.ToString(), component => _buttons.BtnRespin(component) },
+                   { ButtonId.btnConfigListPrevious.ToString(), component => _configCommandHandler.HandleConfigListPaginationAsync(component, false) },
+                   { ButtonId.btnConfigListNext.ToString(), component => _configCommandHandler.HandleConfigListPaginationAsync(component, true) }
                };
         }
 

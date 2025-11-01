@@ -28,12 +28,9 @@ namespace LogicLayer
         {
 #if DEBUG
             string discordToken = _configuration[ConfigurationKeys.DiscordTestToken] ?? throw new Exception("Missing Discord token");
-
 #else
             string discordToken = _configuration[ConfigurationKeys.DiscordToken] ?? throw new Exception("Missing Discord token");
 #endif
-
-            _bactaConfigurationManager.RegisterConfiguration();
 
             _serviceProvider = services;
 
@@ -42,8 +39,6 @@ namespace LogicLayer
 
             await _client.LoginAsync(TokenType.Bot, discordToken);
             await _client.StartAsync();
-
-            _bactaConfigurationManager.RegisterConfiguration();
 
             int retryCount = int.Parse(_configuration[ConfigurationKeys.AuthenticationRetryCount] ?? "15");
 
@@ -54,14 +49,12 @@ namespace LogicLayer
                 {
                     break;
                 }
-                // log that it's retrying
                 _logger.LogInformation((int)BactaLogging.LogEvent.StartUpShutDown, "Retrying connection to Discord... [{RetryCount}/{MaxRetryCount}]", i, retryCount);
                 await Task.Delay(1000);
             }
 
             if (_client.ConnectionState != ConnectionState.Connected)
             {
-                // determine whether it's an internect connection issue, or an invalid api token
                 if (_client.ConnectionState == ConnectionState.Disconnected)
                 {
                     throw new Exception("Failed to connect to Discord. Check your internet connection.");
@@ -72,18 +65,26 @@ namespace LogicLayer
                 }
             }
 
+            // Load configuration BEFORE setting up event handlers
+            _logger.LogInformation((int)BactaLogging.LogEvent.StartUpShutDown, "Loading configuration from database...");
+            await _bactaConfigurationManager.RegisterConfigurationAsync();
+            
+            // Give configuration time to settle
+            await Task.Delay(500);
+
             // Set the client's activity
             await _client.SetActivityAsync(new Game("in the Bacta Pod..."));
 
-            // Register event handlers
+            // Register event handlers AFTER configuration is loaded
             _client.MessageReceived += _eventHandler.MessageRecieved;
             _client.SlashCommandExecuted += _eventHandler.SlashCommandExecuted;
             _client.MessageDeleted += _eventHandler.MessageDeleted;
             _client.ButtonExecuted += _eventHandler.ButtonExecuted;
+            _client.AutocompleteExecuted += _eventHandler.AutocompleteExecuted;
             _eventHandler.ShutdownRequested += StopAsync;
 
             _logger.LogInformation((int)BactaLogging.LogEvent.StartUpShutDown,
-        @$"Starting Bacta Bot
+@$"Starting Bacta Bot
 -----------------------------------------------------------
 -----------------------------------------------------------
 ----|    ____             _          ____        _     |---
@@ -95,7 +96,7 @@ namespace LogicLayer
 -----------------------------------------------------------
 -----------------------------------------------------------
 "
-            );
+    );
 
             await _guildManager.RegisterGuildsAsync();
 

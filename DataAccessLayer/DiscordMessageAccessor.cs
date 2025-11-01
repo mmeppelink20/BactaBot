@@ -11,11 +11,10 @@ namespace DataAccessLayer
     {
         public async Task<bool> DeleteDiscordMessage(ulong messageID)
         {
-            const string cmdText = "sp_delete_discord_message";
             using (var conn = dbConnection.GetConnection())
             {
                 await conn.OpenAsync().ConfigureAwait(false);
-                using (var cmd = new SqlCommand(cmdText, conn))
+                using (var cmd = new SqlCommand(StoredProcedure.DeleteDiscordMessage, conn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
 
@@ -43,13 +42,11 @@ namespace DataAccessLayer
 
         public async Task<List<DiscordMessageVM>> GetDiscordMessagesByChannelIDAndMinutesAsync(ulong channelID, int minutes)
         {
-            const string cmdText = "sp_get_recent_discord_messages";
-
             using (var conn = dbConnection.GetConnection())
             {
                 await conn.OpenAsync().ConfigureAwait(false);
 
-                using (var cmd = new SqlCommand(cmdText, conn))
+                using (var cmd = new SqlCommand(StoredProcedure.GetRecentDiscordMessages, conn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@channel_id", (long)channelID);
@@ -101,13 +98,11 @@ namespace DataAccessLayer
 
         public async Task InsertDiscordMessage(DiscordMessageVM message)
         {
-            const string cmdText = "sp_insert_discord_message";
-
             using (var conn = dbConnection.GetConnection())
             {
                 await conn.OpenAsync();
 
-                using (var cmd = new SqlCommand(cmdText, conn))
+                using (var cmd = new SqlCommand(StoredProcedure.InsertDiscordMessage, conn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
 
@@ -144,10 +139,9 @@ namespace DataAccessLayer
                 }
             }
         }
+
         public async Task InsertDiscordMessages(IEnumerable<DiscordMessageVM> messages)
         {
-            const string cmdText = "sp_bulk_insert_discord_messages";
-
             var dataTable = new DataTable();
             dataTable.Columns.Add("message_id", typeof(long));
             dataTable.Columns.Add("channel_id", typeof(long));
@@ -200,7 +194,7 @@ namespace DataAccessLayer
             {
                 await conn.OpenAsync().ConfigureAwait(false);
 
-                using (var cmd = new SqlCommand(cmdText, conn))
+                using (var cmd = new SqlCommand(StoredProcedure.BulkInsertDiscordMessages, conn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
 
@@ -217,6 +211,5 @@ namespace DataAccessLayer
         {
             throw new NotImplementedException();
         }
-
     }
 }

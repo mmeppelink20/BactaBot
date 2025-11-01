@@ -43,10 +43,12 @@ namespace LogicLayer
                 { "summarize", slashCommands.HandleSummarizeCommand },
                 { "ping", slashCommands.HandlePingCommand },
                 { "credits", slashCommands.HandleCreditsCommand },
-                { "leaderboard", slashCommands.HandleLeaderboardCommand }
+                { "leaderboard", slashCommands.HandleLeaderboardCommand },
+                { "config", slashCommands.HandleConfigCommand },
+                { "developer", slashCommands.HandleDeveloperCommand }
             };
 
-            _ephemeralCommands = ["question", "summarize", "ping", "credits", "leaderboard"];
+            _ephemeralCommands = ["question", "summarize", "ping", "credits", "leaderboard", "config", "developer"];
         }
 
         public async Task CommandExecutorAsync(SocketSlashCommand command)

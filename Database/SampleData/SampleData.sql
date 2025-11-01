@@ -34,7 +34,7 @@ Respond to the following question or statement based on the conversation history
 
 If you are unsure how to respond, acknowledge the message simply or ask for clarification.'),
     ('QUESTION_PROMPT', 'Answer the following question in under 1000 characters: '),
-    ('BACTA_BOT_NAME', 'Bacta Bot'),
-    ('DEVELOPER_USERID_LIST', '')
+    ('BACTA_BOT_NAME', ''),
+    ('DEVELOPER_USERID_LIST', '197944571844362240')
 ;
 GO

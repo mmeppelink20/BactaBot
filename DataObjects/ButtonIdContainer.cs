@@ -12,7 +12,9 @@ namespace DataObjects
         {
             btnDm,
             btnShare,
-            btnRespin
+            btnRespin,
+            btnConfigListPrevious,
+            btnConfigListNext
         }
     }
 }

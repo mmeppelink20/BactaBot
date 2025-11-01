@@ -14,7 +14,7 @@ namespace DataAccessLayer
             using var conn = _dbConnection.GetConnection();
             await conn.OpenAsync();
 
-            using var cmd = new SqlCommand("sp_deactivate_guild_users", conn)
+            using var cmd = new SqlCommand(StoredProcedure.DeactivateGuildUsers, conn)
             {
                 CommandType = CommandType.StoredProcedure
             };
@@ -29,7 +29,7 @@ namespace DataAccessLayer
             using var conn = _dbConnection.GetConnection();
             await conn.OpenAsync();
 
-            using var cmd = new SqlCommand("sp_insert_multiple_users", conn)
+            using var cmd = new SqlCommand(StoredProcedure.InsertMultipleUsers, conn)
             {
                 CommandType = CommandType.StoredProcedure
             };
@@ -44,7 +44,7 @@ namespace DataAccessLayer
             using var conn = _dbConnection.GetConnection();
             await conn.OpenAsync();
 
-            using var cmd = new SqlCommand("sp_insert_guild_users", conn)
+            using var cmd = new SqlCommand(StoredProcedure.InsertGuildUsers, conn)
             {
                 CommandType = CommandType.StoredProcedure
             };
@@ -59,7 +59,7 @@ namespace DataAccessLayer
             using var conn = _dbConnection.GetConnection();
             await conn.OpenAsync();
 
-            using var cmd = new SqlCommand("sp_deactivate_guild_users", conn)
+            using var cmd = new SqlCommand(StoredProcedure.DeactivateGuildUsers, conn)
             {
                 CommandType = CommandType.StoredProcedure
             };

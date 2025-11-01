@@ -14,6 +14,9 @@ set SQLPASSWORD=%DB_PASSWORD%
 REM Set path to sqlcmd executable
 set SqlCmdPath="C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\sqlcmd.exe"
 
+REM Clear previous log
+if exist DB.log del DB.log
+
 REM create DB
 echo Executing CreateDB.sql
 %SqlCmdPath% -S %ServerName% -U %SQLUSERNAME% -P %SQLPASSWORD% -i "CreateDB.sql" >> DB.log 2>&1
@@ -51,6 +54,7 @@ call :CheckErrors "UserStats.sql"
 echo Executing GuildUsers.sql
 %SqlCmdPath% -S %ServerName% -d %DatabaseName% -U %SQLUSERNAME% -P %SQLPASSWORD% -i ".\Tables\GuildUsers.sql" >> DB.log 2>&1
 call :CheckErrors "GuildUsers.sql"
+echo Executing EditedMessages.sql
 %SqlCmdPath% -S %ServerName% -d %DatabaseName% -U %SQLUSERNAME% -P %SQLPASSWORD% -i ".\Tables\EditedMessages.sql" >> DB.log 2>&1
 call :CheckErrors "EditedMessages.sql"
 
@@ -85,6 +89,20 @@ for %%F in (%StoredProcPath%\*.sql) do (
 echo.
 
 echo  **************************
+echo     Creating %DatabaseName% Indexes for Performance.
+echo  **************************
+
+REM Execute all index scripts
+set IndexPath=.\Indexes
+for %%F in (%IndexPath%\*.sql) do (
+    echo Executing "%%F"
+    %SqlCmdPath% -S %ServerName% -d %DatabaseName% -U %SQLUSERNAME% -P %SQLPASSWORD% -i "%%F" >> DB.log 2>&1
+    call :CheckErrors "%%F"
+)
+
+echo.
+
+echo  **************************
 echo     Inserting sample data into %DatabaseName%
 echo  **************************
 
@@ -94,14 +112,14 @@ echo Executing SampleData.sql
 call :CheckErrors "SampleData.sql"
 
 echo.
-
+echo Database setup completed successfully!
 pause
 exit /b
 
 :CheckErrors
 REM Check for errors in the log file and include the specific script name
 set ScriptName=%1
-findstr /i "error" DB.log >nul
+findstr /i "error\|msg.*level.*16\|violation" DB.log >nul
 if %errorlevel% equ 0 (
     echo Errors detected during execution of "%ScriptName". Opening log file...
     notepad DB.log

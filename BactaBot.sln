@@ -43,6 +43,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "StoredProcedures", "StoredP
 		Database\StoredProcedures\sp_deactivate_guilds.sql = Database\StoredProcedures\sp_deactivate_guilds.sql
 		Database\StoredProcedures\sp_deactivate_users.sql = Database\StoredProcedures\sp_deactivate_users.sql
 		Database\StoredProcedures\sp_delete_channel.sql = Database\StoredProcedures\sp_delete_channel.sql
+		Database\StoredProcedures\sp_delete_configuration_key.sql = Database\StoredProcedures\sp_delete_configuration_key.sql
 		Database\StoredProcedures\sp_delete_discord_message.sql = Database\StoredProcedures\sp_delete_discord_message.sql
 		Database\StoredProcedures\sp_delete_guild.sql = Database\StoredProcedures\sp_delete_guild.sql
 		Database\StoredProcedures\sp_get_all_channels.sql = Database\StoredProcedures\sp_get_all_channels.sql
@@ -55,13 +56,16 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "StoredProcedures", "StoredP
 		Database\StoredProcedures\sp_get_message_count_by_user.sql = Database\StoredProcedures\sp_get_message_count_by_user.sql
 		Database\StoredProcedures\sp_get_recent_discord_messages.sql = Database\StoredProcedures\sp_get_recent_discord_messages.sql
 		Database\StoredProcedures\sp_insert_channel.sql = Database\StoredProcedures\sp_insert_channel.sql
+		Database\StoredProcedures\sp_insert_conifugration_key_value.sql = Database\StoredProcedures\sp_insert_conifugration_key_value.sql
 		Database\StoredProcedures\sp_insert_discord_message.sql = Database\StoredProcedures\sp_insert_discord_message.sql
 		Database\StoredProcedures\sp_insert_guild.sql = Database\StoredProcedures\sp_insert_guild.sql
 		Database\StoredProcedures\sp_insert_guild_users.sql = Database\StoredProcedures\sp_insert_guild_users.sql
 		Database\StoredProcedures\sp_insert_multiple_channels.sql = Database\StoredProcedures\sp_insert_multiple_channels.sql
 		Database\StoredProcedures\sp_insert_multiple_guilds.sql = Database\StoredProcedures\sp_insert_multiple_guilds.sql
 		Database\StoredProcedures\sp_insert_multiple_users.sql = Database\StoredProcedures\sp_insert_multiple_users.sql
+		Database\StoredProcedures\sp_set_configuration_key_value.sql = Database\StoredProcedures\sp_set_configuration_key_value.sql
 		Database\StoredProcedures\sp_update_channel.sql = Database\StoredProcedures\sp_update_channel.sql
+		Database\StoredProcedures\sp_update_configuration_key.sql = Database\StoredProcedures\sp_update_configuration_key.sql
 		Database\StoredProcedures\sp_update_discord_message.sql = Database\StoredProcedures\sp_update_discord_message.sql
 		Database\StoredProcedures\sp_update_guild.sql = Database\StoredProcedures\sp_update_guild.sql
 	EndProjectSection
@@ -98,6 +102,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Types", "Types", "{EA2DF4BB
 		Database\Types\GuildUsersTableType.sql = Database\Types\GuildUsersTableType.sql
 		Database\Types\UsersIDs.sql = Database\Types\UsersIDs.sql
 		Database\Types\UsersTableType.sql = Database\Types\UsersTableType.sql
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Indexes", "Indexes", "{438B62FD-30CF-40BB-8428-6287F88381DE}"
+	ProjectSection(SolutionItems) = preProject
+		Database\Indexes\IX_Channels_Performance.sql = Database\Indexes\IX_Channels_Performance.sql
+		Database\Indexes\IX_Configuration_Performance.sql = Database\Indexes\IX_Configuration_Performance.sql
+		Database\Indexes\IX_DiscordMessages_performance.sql = Database\Indexes\IX_DiscordMessages_performance.sql
+		Database\Indexes\IX_GuildUsers_Performance.sql = Database\Indexes\IX_GuildUsers_Performance.sql
+		Database\Indexes\IX_Users_Performance.sql = Database\Indexes\IX_Users_Performance.sql
 	EndProjectSection
 EndProject
 Global
@@ -141,6 +154,7 @@ Global
 		{515C2E95-433A-440A-9399-43B805B161A5} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{8E449768-4CB7-436D-A219-C5059ED0BF7A} = {515C2E95-433A-440A-9399-43B805B161A5}
 		{EA2DF4BB-00FA-4C23-ABAD-6626709FFD1B} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{438B62FD-30CF-40BB-8428-6287F88381DE} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E0387AF1-C3C9-4FD4-991A-D66953D63CCB}

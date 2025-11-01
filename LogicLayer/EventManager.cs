@@ -236,6 +236,61 @@ namespace LogicLayer
             await _buttonManager.ButtonExecutorAsync(component);
         }
 
+        public async Task AutocompleteExecuted(SocketAutocompleteInteraction interaction)
+        {
+            try
+            {
+                // Only handle autocomplete for the config command
+                if (interaction.Data.CommandName != "config")
+                {
+                    await interaction.RespondAsync([]);
+                    return;
+                }
+
+                // Get the current user input
+                var focusedOption = interaction.Data.Current;
+                var userInput = focusedOption.Value?.ToString()?.ToLower() ?? string.Empty;
+
+                _logger.LogDebug("Autocomplete requested for config command, focused option: {Option}, input: {Input}", 
+                    focusedOption.Name, userInput);
+
+                // Only provide autocomplete for the "key" parameter
+                if (focusedOption.Name != "key")
+                {
+                    await interaction.RespondAsync([]);
+                    return;
+                }
+
+                // Retrieve all configuration keys
+                var result = await _bactaConfigurationManager.RetrieveAllConfigurationKeysValuesAsync();
+                
+                if (result.IsFailure || result.Data == null)
+                {
+                    _logger.LogWarning("Failed to retrieve configuration keys for autocomplete: {Error}", result.ErrorMessage);
+                    await interaction.RespondAsync([]);
+                    return;
+                }
+
+                // Filter and sort keys based on user input
+                var matchingKeys = result.Data.Keys
+                    .Where(key => string.IsNullOrEmpty(userInput) || key.ToLower().Contains(userInput))
+                    .OrderBy(key => key)
+                    .Take(25) // Discord limits autocomplete to 25 options
+                    .Select(key => new AutocompleteResult(key, key))
+                    .ToArray();
+
+                _logger.LogDebug("Returning {Count} autocomplete suggestions", matchingKeys.Length);
+
+                await interaction.RespondAsync(matchingKeys);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error handling autocomplete for config command");
+                // Return empty results on error to prevent the command from failing
+                await interaction.RespondAsync([]);
+            }
+        }
+
         private async Task ImportChannelHistoryAsync(SocketMessage message)
         {
             if (message.Channel is not SocketTextChannel textChannel)

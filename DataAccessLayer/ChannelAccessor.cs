@@ -1,20 +1,20 @@
 ﻿using DataAccessLayerInterfaces;
 using Microsoft.Data.SqlClient;
 using System.Data;
+using DataObjects;
 
 namespace DataAccessLayer
 {
     public class ChannelAccessor(IDBConnection dbConnection) : IChannelAccessor
     {
         private readonly IDBConnection _dbConnection = dbConnection;
+
         public async Task DeactivateMultipleChannelsAsync(List<ulong> channels)
         {
-            string cmdText = "sp_deactivate_channels";
-
             using (var conn = _dbConnection.GetConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new SqlCommand(cmdText, conn))
+                using (var cmd = new SqlCommand(StoredProcedure.DeactivateChannels, conn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     DataTable channelTable = new();
@@ -48,12 +48,10 @@ namespace DataAccessLayer
 
         public async Task InsertMultipleChannelsAsync(List<(ulong guildId, ulong channelId, string channelName, string channelType)> channels)
         {
-            string cmdText = "sp_insert_multiple_channels";
-
             using (var conn = _dbConnection.GetConnection())
             {
                 await conn.OpenAsync();
-                using (var cmd = new SqlCommand(cmdText, conn))
+                using (var cmd = new SqlCommand(StoredProcedure.InsertMultipleChannels, conn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     DataTable channelTable = new();
