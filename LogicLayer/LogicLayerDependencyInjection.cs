@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Discord.WebSocket;
 using LogicLayerInterfaces.CommandHandlers;
 using LogicLayer.CommandHandlers;
+using LogicLayer.Helpers;
 
 namespace LogicLayer
 {

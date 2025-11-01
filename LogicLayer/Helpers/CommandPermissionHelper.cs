@@ -3,7 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using DataObjects;
 
-namespace LogicLayer.CommandHandlers
+namespace LogicLayer.Helpers
 {
     public class CommandPermissionHelper : ICommandPermissionHelper
     {
