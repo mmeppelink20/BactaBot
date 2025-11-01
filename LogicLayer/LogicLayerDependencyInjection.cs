@@ -6,6 +6,7 @@ using Discord.WebSocket;
 using LogicLayerInterfaces.CommandHandlers;
 using LogicLayer.CommandHandlers;
 using LogicLayer.Helpers;
+using LogicLayerInterfaces.Helpers;
 
 namespace LogicLayer
 {

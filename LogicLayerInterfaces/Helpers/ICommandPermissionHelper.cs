@@ -1,4 +1,4 @@
-﻿namespace LogicLayerInterfaces.CommandHandlers
+﻿namespace LogicLayerInterfaces.Helpers
 {
     public interface ICommandPermissionHelper
     {
